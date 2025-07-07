@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 import os
+from typing import Dict, Any
 
 # Configuração inicial
 st.set_page_config(
@@ -71,6 +72,152 @@ st.title("📊 IA para Planejamento de Mídia")
 st.markdown("""
 **Crie planos de mídia otimizados com alocação automática de verba por estratégia, plataforma e localização.**
 """)
+
+# Estado da sessão para armazenar resultados intermediários
+if 'plano_completo' not in st.session_state:
+    st.session_state.plano_completo = {}
+if 'current_step' not in st.session_state:
+    st.session_state.current_step = 0
+
+# Funções de geração de conteúdo com IA
+def gerar_recomendacao_estrategica(params: Dict[str, Any]) -> str:
+    """Gera a recomendação estratégica inicial"""
+    prompt = f"""
+    Como especialista em planejamento de mídia digital, analise os seguintes parâmetros e forneça uma recomendação estratégica:
+
+    **Objetivo da Campanha:** {params['objetivo_campanha']}
+    **Tipo de Campanha:** {params['tipo_campanha']}
+    **Budget Total:** R$ {params['budget']:,.2f}
+    **Ferramentas/Plataformas:** {", ".join(params['ferramentas'])}
+    **Localização Primária:** {params['localizacao_primaria']}
+    **Localização Secundária:** {params['localizacao_secundaria']}
+    **Tipo de Público:** {params['tipo_publico']}
+    **Tipos de Criativo:** {", ".join(params['tipo_criativo'])}
+    **OKRs:** {", ".join(params['okrs'])}
+    **Observações:** {params['observacoes'] or "Nenhuma"}
+
+    Forneça:
+    1. Análise estratégica (150-200 palavras)
+    2. Principais oportunidades identificadas
+    3. Riscos potenciais a considerar
+    4. Recomendação geral de abordagem
+
+    Formato: Markdown com headers (##, ###)
+    """
+    response = modelo_texto.generate_content(prompt)
+    return response.text
+
+def gerar_distribuicao_budget(params: Dict[str, Any], recomendacao_estrategica: str) -> str:
+    """Gera a distribuição de budget baseada na recomendação estratégica"""
+    prompt = f"""
+    Com base na seguinte recomendação estratégica:
+    {recomendacao_estrategica}
+
+    E nos parâmetros originais:
+    - Budget: R$ {params['budget']:,.2f}
+    - Plataformas: {", ".join(params['ferramentas'])}
+    - Localizações: Primária ({params['localizacao_primaria']}), Secundária ({params['localizacao_secundaria']})
+    - OKRs: {", ".join(params['okrs'])}
+
+    Crie uma tabela detalhada de distribuição de budget com:
+    1. Divisão por plataforma (% e valor)
+    2. Alocação geográfica (primária vs secundária)
+    3. Tipos de criativos recomendados para cada
+    4. Justificativa para cada alocação
+
+    Inclua também uma breve análise (50-100 palavras) explicando a lógica de distribuição.
+
+    Formato: Markdown com tabelas (use | para divisão)
+    """
+    response = modelo_texto.generate_content(prompt)
+    return response.text
+
+def gerar_previsao_resultados(params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
+    """Gera previsão de resultados baseada nos parâmetros"""
+    prompt = f"""
+    Com base na estratégia:
+    {recomendacao_estrategica}
+
+    E na distribuição de budget:
+    {distribuicao_budget}
+
+    Estime os resultados esperados para esta campanha considerando:
+    - Objetivo: {params['objetivo_campanha']}
+    - OKRs: {", ".join(params['okrs'])}
+    - Budget total: R$ {params['budget']:,.2f}
+
+    Forneça:
+    1. Tabela com métricas esperadas por plataforma (impressões, alcance, engajamento, etc.)
+    2. Estimativa de CPM, CPC, CTR conforme relevante
+    3. Análise de potencial desempenho (50-100 palavras)
+    4. Principais KPI's a monitorar
+
+    Use dados de benchmark do setor quando aplicável.
+
+    Formato: Markdown com tabelas
+    """
+    response = modelo_texto.generate_content(prompt)
+    return response.text
+
+def gerar_recomendacoes_publico(params: Dict[str, Any], recomendacao_estrategica: str) -> str:
+    """Gera recomendações detalhadas de público-alvo"""
+    prompt = f"""
+    Para a campanha com os seguintes parâmetros:
+    - Tipo de Público: {params['tipo_publico']}
+    - Objetivo: {params['objetivo_campanha']}
+    - Plataformas: {", ".join(params['ferramentas'])}
+
+    E considerando a estratégia geral:
+    {recomendacao_estrategica}
+
+    Desenvolva recomendações detalhadas de público-alvo incluindo:
+    1. Segmentação recomendada para cada plataforma
+    2. Parâmetros de targeting específicos
+    3. Tamanho estimado do público
+    4. Estratégias de expansão (LAL, interesses, etc.)
+    5. Considerações sobre frequência e saturação
+
+    Formato: Markdown com listas e headers
+    """
+    response = modelo_texto.generate_content(prompt)
+    return response.text
+
+def gerar_cronograma(params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
+    """Gera cronograma de implementação"""
+    prompt = f"""
+    Com base na estratégia:
+    {recomendacao_estrategica}
+
+    E na distribuição de budget:
+    {distribuicao_budget}
+
+    Crie um cronograma detalhado para implementação desta campanha considerando:
+    - Budget total: R$ {params['budget']:,.2f}
+    - Plataformas: {", ".join(params['ferramentas'])}
+    - OKRs: {", ".join(params['okrs'])}
+
+    Inclua:
+    1. Fases de implementação (pré-lançamento, lançamento, otimização)
+    2. Distribuição temporal do budget
+    3. Principais marcos e entregáveis
+    4. Recomendações de frequência de ajustes
+
+    Formato: Markdown com tabelas ou listas numeradas
+    """
+    response = modelo_texto.generate_content(prompt)
+    return response.text
+
+# Função para extrair seções de forma segura
+def extract_section(response_text: str, section_title: str) -> str:
+    """Extrai uma seção específica do texto da resposta"""
+    if section_title in response_text:
+        parts = response_text.split(section_title)
+        if len(parts) > 1:
+            next_section = parts[1].find("##")
+            if next_section != -1:
+                return parts[1][:next_section].strip()
+            return parts[1].strip()
+    return "Seção não encontrada na resposta."
 
 # Abas principais
 tab1, tab2 = st.tabs(["📋 Criar Novo Plano", "📊 Exemplos e Modelos"])
@@ -152,91 +299,113 @@ with tab1:
         if not objetivo_campanha or not tipo_campanha or not budget or not ferramentas:
             st.error("Por favor, preencha todos os campos obrigatórios (*)")
         else:
-            with st.spinner('Analisando dados e criando plano de mídia otimizado...'):
-                # Construir prompt para a IA
-                prompt = f"""
-                Você é um especialista em planejamento de mídia digital. Crie um plano detalhado com base nestes parâmetros:
-
-                **Objetivo da Campanha:** {objetivo_campanha}
-                **Tipo de Campanha:** {tipo_campanha}
-                **Budget Total:** R$ {budget:,.2f}
-                **Ferramentas/Plataformas:** {", ".join(ferramentas)}
-                **Localização Primária:** {localizacao_primaria}
-                **Localização Secundária:** {localizacao_secundaria}
-                **Tipo de Público:** {tipo_publico}
-                **Tipos de Criativo:** {", ".join(tipo_criativo)}
-                **OKRs:** {", ".join(okrs)}
-                **Observações:** {observacoes or "Nenhuma"}
-
-                **Saída Esperada:**
-                1. **Recomendação Estratégica**: Breve análise (100-150 palavras) explicando a estratégia recomendada
-                2. **Distribuição de Budget**: Tabela mostrando a divisão percentual e valores por:
-                   - Plataforma
-                   - Localização (primária/secundária)
-                   - Tipo de criativo
-                3. **Previsão de Resultados**: Tabela com métricas esperadas para cada plataforma
-                4. **Recomendações de Público**: Detalhamento dos públicos-alvo sugeridos
-                5. **Cronograma Sugerido**: Distribuição temporal do budget
-
-                **Formato:**
-                - Use markdown com headers (##, ###)
-                - Tabelas em formato markdown
-                - Dados concretos e justificativas
-                - Foco em performance e ROI
-
-                **Exemplo de tabela esperada:**
-                | Plataforma       | % Budget | Valor (R$) | Foco Principal | Criativos Recomendados |
-                |------------------|----------|------------|-----------------|------------------------|
-                | Meta Ads         | 45%      | 45.000,00  | Alcance         | Vídeo, Carrossel       |
-                """
-                
-                # Chamar a IA
-                response = modelo_texto.generate_content(prompt)
-                
-                
-                # Exibir resultados
-                st.success("Plano de Mídia gerado com sucesso!")
-                
-                # Função para extrair seções de forma segura
-                def extract_section(response_text, section_title):
-                    if section_title in response_text:
-                        parts = response_text.split(section_title)
-                        if len(parts) > 1:
-                            next_section = parts[1].find("##")
-                            if next_section != -1:
-                                return parts[1][:next_section]
-                            return parts[1]
-                    return "Seção não encontrada na resposta."
-                
-                # Dividir a resposta em seções
-                resposta = response.text
-                st.markdown("## 📌 Recomendação Estratégica")
-                strategic_recommendation = extract_section(resposta, "## 📌 Recomendação Estratégica")
-                st.markdown(strategic_recommendation)
-                
-                st.markdown("## 📊 Distribuição de Budget")
-                budget_distribution = extract_section(resposta, "## 📊 Distribuição de Budget")
-                st.markdown(budget_distribution)
-                
-                st.markdown("## 📈 Previsão de Resultados")
-                results_forecast = extract_section(resposta, "## 📈 Previsão de Resultados")
-                st.markdown(results_forecast)
-                
-                st.markdown("## 🎯 Recomendações de Público")
-                audience_recommendations = extract_section(resposta, "## 🎯 Recomendações de Público")
-                st.markdown(audience_recommendations)
-                
-                st.markdown("## 📅 Cronograma Sugerido")
-                schedule = extract_section(resposta, "## 📅 Cronograma Sugerido")
-                st.markdown(schedule)
-                
-                # Botão para baixar o plano
-                st.download_button(
-                    label="📥 Baixar Plano Completo",
-                    data=resposta,
-                    file_name=f"plano_midia_{objetivo_campanha}_{budget}.md",
-                    mime="text/markdown"
+            # Armazenar parâmetros na sessão
+            params = {
+                'objetivo_campanha': objetivo_campanha,
+                'tipo_campanha': tipo_campanha,
+                'budget': budget,
+                'ferramentas': ferramentas,
+                'localizacao_primaria': localizacao_primaria,
+                'localizacao_secundaria': localizacao_secundaria,
+                'tipo_publico': tipo_publico,
+                'tipo_criativo': tipo_criativo,
+                'okrs': okrs,
+                'observacoes': observacoes
+            }
+            
+            st.session_state.current_step = 1
+            st.session_state.params = params
+            
+    # Processamento em etapas
+    if st.session_state.current_step >= 1:
+        with st.spinner('Gerando recomendação estratégica...'):
+            if 'recomendacao_estrategica' not in st.session_state.plano_completo:
+                st.session_state.plano_completo['recomendacao_estrategica'] = gerar_recomendacao_estrategica(st.session_state.params)
+            
+            st.markdown("## 📌 Recomendação Estratégica")
+            st.markdown(st.session_state.plano_completo['recomendacao_estrategica'])
+            
+            if st.button("Próxima Etapa: Distribuição de Budget"):
+                st.session_state.current_step = 2
+    
+    if st.session_state.current_step >= 2:
+        with st.spinner('Calculando distribuição de budget...'):
+            if 'distribuicao_budget' not in st.session_state.plano_completo:
+                st.session_state.plano_completo['distribuicao_budget'] = gerar_distribuicao_budget(
+                    st.session_state.params,
+                    st.session_state.plano_completo['recomendacao_estrategica']
                 )
+            
+            st.markdown("## 📊 Distribuição de Budget")
+            st.markdown(st.session_state.plano_completo['distribuicao_budget'])
+            
+            if st.button("Próxima Etapa: Previsão de Resultados"):
+                st.session_state.current_step = 3
+    
+    if st.session_state.current_step >= 3:
+        with st.spinner('Estimando resultados...'):
+            if 'previsao_resultados' not in st.session_state.plano_completo:
+                st.session_state.plano_completo['previsao_resultados'] = gerar_previsao_resultados(
+                    st.session_state.params,
+                    st.session_state.plano_completo['recomendacao_estrategica'],
+                    st.session_state.plano_completo['distribuicao_budget']
+                )
+            
+            st.markdown("## 📈 Previsão de Resultados")
+            st.markdown(st.session_state.plano_completo['previsao_resultados'])
+            
+            if st.button("Próxima Etapa: Recomendações de Público"):
+                st.session_state.current_step = 4
+    
+    if st.session_state.current_step >= 4:
+        with st.spinner('Desenvolvendo recomendações de público...'):
+            if 'recomendacoes_publico' not in st.session_state.plano_completo:
+                st.session_state.plano_completo['recomendacoes_publico'] = gerar_recomendacoes_publico(
+                    st.session_state.params,
+                    st.session_state.plano_completo['recomendacao_estrategica']
+                )
+            
+            st.markdown("## 🎯 Recomendações de Público")
+            st.markdown(st.session_state.plano_completo['recomendacoes_publico'])
+            
+            if st.button("Próxima Etapa: Cronograma"):
+                st.session_state.current_step = 5
+    
+    if st.session_state.current_step >= 5:
+        with st.spinner('Criando cronograma...'):
+            if 'cronograma' not in st.session_state.plano_completo:
+                st.session_state.plano_completo['cronograma'] = gerar_cronograma(
+                    st.session_state.params,
+                    st.session_state.plano_completo['recomendacao_estrategica'],
+                    st.session_state.plano_completo['distribuicao_budget']
+                )
+            
+            st.markdown("## 📅 Cronograma Sugerido")
+            st.markdown(st.session_state.plano_completo['cronograma'])
+            
+            # Botão para baixar o plano completo
+            plano_completo = "\n\n".join([
+                "# 📊 Plano de Mídia Completo\n",
+                f"**Campanha:** {st.session_state.params['objetivo_campanha']}",
+                f"**Budget:** R$ {st.session_state.params['budget']:,.2f}\n",
+                "## 📌 Recomendação Estratégica",
+                st.session_state.plano_completo['recomendacao_estrategica'],
+                "## 📊 Distribuição de Budget",
+                st.session_state.plano_completo['distribuicao_budget'],
+                "## 📈 Previsão de Resultados",
+                st.session_state.plano_completo['previsao_resultados'],
+                "## 🎯 Recomendações de Público",
+                st.session_state.plano_completo['recomendacoes_publico'],
+                "## 📅 Cronograma Sugerido",
+                st.session_state.plano_completo['cronograma']
+            ])
+            
+            st.download_button(
+                label="📥 Baixar Plano Completo",
+                data=plano_completo,
+                file_name=f"plano_midia_{st.session_state.params['objetivo_campanha']}_{st.session_state.params['budget']}.md",
+                mime="text/markdown"
+            )
 
 with tab2:
     st.header("Modelos e Exemplos de Planejamento")
