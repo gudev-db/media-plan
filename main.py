@@ -209,6 +209,7 @@ with tab1:
                     return "Seção não encontrada na resposta."
                 
                 # Dividir a resposta em seções
+                resposta = response.text
                 st.markdown("## 📌 Recomendação Estratégica")
                 strategic_recommendation = extract_section(resposta, "## 📌 Recomendação Estratégica")
                 st.markdown(strategic_recommendation)
