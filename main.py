@@ -199,22 +199,22 @@ with tab1:
                 # Dividir a resposta em seções
                 resposta = response.text
                 
-                st.markdown("## 📌 Recomendação Estratégica")
+                st.markdown("📌 Recomendação Estratégica")
                 st.markdown(resposta.split("## 📌 Recomendação Estratégica")[1].split("##")[0])
                 
-                if "## 📊 Distribuição de Budget" in resposta:
+                if "📊 Distribuição de Budget" in resposta:
                     st.markdown("## 📊 Distribuição de Budget")
                     st.markdown(resposta.split("## 📊 Distribuição de Budget")[1].split("##")[0])
                 
-                if "## 📈 Previsão de Resultados" in resposta:
+                if "📈 Previsão de Resultados" in resposta:
                     st.markdown("## 📈 Previsão de Resultados")
                     st.markdown(resposta.split("## 📈 Previsão de Resultados")[1].split("##")[0])
                 
-                if "## 🎯 Recomendações de Público" in resposta:
+                if "🎯 Recomendações de Público" in resposta:
                     st.markdown("## 🎯 Recomendações de Público")
                     st.markdown(resposta.split("## 🎯 Recomendações de Público")[1].split("##")[0])
                 
-                if "## 📅 Cronograma Sugerido" in resposta:
+                if "📅 Cronograma Sugerido" in resposta:
                     st.markdown("## 📅 Cronograma Sugerido")
                     st.markdown(resposta.split("## 📅 Cronograma Sugerido")[1])
                 
