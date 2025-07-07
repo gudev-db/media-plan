@@ -190,48 +190,52 @@ with tab1:
                 | Meta Ads         | 45%      | 45.000,00  | Alcance         | Vídeo, Carrossel       |
                 """
                 
+                # Chamar a IA
+                response = modelo_texto.generate_content(prompt)
+                
+                
                 # Exibir resultados
-st.success("Plano de Mídia gerado com sucesso!")
-
-# Função para extrair seções de forma segura
-def extract_section(response_text, section_title):
-    if section_title in response_text:
-        parts = response_text.split(section_title)
-        if len(parts) > 1:
-            next_section = parts[1].find("##")
-            if next_section != -1:
-                return parts[1][:next_section]
-            return parts[1]
-    return "Seção não encontrada na resposta."
-
-        # Dividir a resposta em seções
-        st.markdown("## 📌 Recomendação Estratégica")
-        strategic_recommendation = extract_section(resposta, "## 📌 Recomendação Estratégica")
-        st.markdown(strategic_recommendation)
-        
-        st.markdown("## 📊 Distribuição de Budget")
-        budget_distribution = extract_section(resposta, "## 📊 Distribuição de Budget")
-        st.markdown(budget_distribution)
-        
-        st.markdown("## 📈 Previsão de Resultados")
-        results_forecast = extract_section(resposta, "## 📈 Previsão de Resultados")
-        st.markdown(results_forecast)
-        
-        st.markdown("## 🎯 Recomendações de Público")
-        audience_recommendations = extract_section(resposta, "## 🎯 Recomendações de Público")
-        st.markdown(audience_recommendations)
-        
-        st.markdown("## 📅 Cronograma Sugerido")
-        schedule = extract_section(resposta, "## 📅 Cronograma Sugerido")
-        st.markdown(schedule)
-        
-        # Botão para baixar o plano
-        st.download_button(
-            label="📥 Baixar Plano Completo",
-            data=resposta,
-            file_name=f"plano_midia_{objetivo_campanha}_{budget}.md",
-            mime="text/markdown"
-        )
+                st.success("Plano de Mídia gerado com sucesso!")
+                
+                # Função para extrair seções de forma segura
+                def extract_section(response_text, section_title):
+                    if section_title in response_text:
+                        parts = response_text.split(section_title)
+                        if len(parts) > 1:
+                            next_section = parts[1].find("##")
+                            if next_section != -1:
+                                return parts[1][:next_section]
+                            return parts[1]
+                    return "Seção não encontrada na resposta."
+                
+                # Dividir a resposta em seções
+                st.markdown("## 📌 Recomendação Estratégica")
+                strategic_recommendation = extract_section(resposta, "## 📌 Recomendação Estratégica")
+                st.markdown(strategic_recommendation)
+                
+                st.markdown("## 📊 Distribuição de Budget")
+                budget_distribution = extract_section(resposta, "## 📊 Distribuição de Budget")
+                st.markdown(budget_distribution)
+                
+                st.markdown("## 📈 Previsão de Resultados")
+                results_forecast = extract_section(resposta, "## 📈 Previsão de Resultados")
+                st.markdown(results_forecast)
+                
+                st.markdown("## 🎯 Recomendações de Público")
+                audience_recommendations = extract_section(resposta, "## 🎯 Recomendações de Público")
+                st.markdown(audience_recommendations)
+                
+                st.markdown("## 📅 Cronograma Sugerido")
+                schedule = extract_section(resposta, "## 📅 Cronograma Sugerido")
+                st.markdown(schedule)
+                
+                # Botão para baixar o plano
+                st.download_button(
+                    label="📥 Baixar Plano Completo",
+                    data=resposta,
+                    file_name=f"plano_midia_{objetivo_campanha}_{budget}.md",
+                    mime="text/markdown"
+                )
 
 with tab2:
     st.header("Modelos e Exemplos de Planejamento")
