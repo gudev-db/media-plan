@@ -14,7 +14,6 @@ st.set_page_config(
 # CSS personalizado
 st.markdown("""
 <style>
-    /* Estilos gerais */
     .main {
         background-color: #f5f7fa;
     }
@@ -32,7 +31,6 @@ st.markdown("""
     .stButton button:hover {
         background-color: #4338ca !important;
     }
-    /* Cards de resultado */
     .result-card {
         background-color: white;
         border-radius: 12px;
@@ -40,7 +38,6 @@ st.markdown("""
         margin-bottom: 20px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    /* Tabelas */
     table {
         width: 100%;
         border-collapse: collapse;
@@ -54,7 +51,6 @@ st.markdown("""
         background-color: #f9fafb;
         font-weight: 600;
     }
-    /* Abas */
     .stTabs [aria-selected="true"] {
         color: #4f46e5 !important;
         font-weight: 600 !important;
@@ -85,7 +81,7 @@ st.markdown("""
 **Crie planos de mídia otimizados com alocação automática de verba por estratégia, plataforma e localização.**
 """)
 
-# Estado da sessão para armazenar resultados intermediários
+# Estado da sessão
 if 'plano_completo' not in st.session_state:
     st.session_state.plano_completo = {}
 if 'current_step' not in st.session_state:
@@ -93,40 +89,33 @@ if 'current_step' not in st.session_state:
 
 # Dicionários de métricas por etapa do funil
 METRICAS_POR_ETAPA = {
-    'Topo': ['Impressões', 'Alcance', 'Frequência', 'CPM', 'Brand Lift', 'Engajamento', 'Video Views'],
-    'Meio': ['Engajamento', 'CTR', 'Cliques', 'Tempo no Site', 'Pages per Visit', 'Video Completions', 'Lead Generation'],
-    'Fundo': ['Conversões', 'ROAS', 'CPA', 'Valor da Conversão', 'Leads Qualificados', 'Vendas', 'Custo por Lead']
+    'Topo': ['Impressões', 'Alcance', 'Custo', 'CPM', 'Cliques', 'CTR', 'Engajamentos', 'Frequência'],
+    'Meio': ['Impressões', 'Cliques', 'CTR', 'CPM', 'Custo', 'Engajamentos', 'Visualizações', 'ThruPlays'],
+    'Fundo': ['Impressões', 'Cliques', 'Resultados', 'CTR', 'CPM', 'Custo por resultado', 'Custo']
 }
 
 DESCRICOES_METRICAS = {
     'Impressões': "Número total de vezes que seu anúncio foi exibido",
     'Alcance': "Número de pessoas únicas que viram seu anúncio",
-    'Frequência': "Média de vezes que cada pessoa viu seu anúncio",
+    'Custo': "Custo total da campanha",
     'CPM': "Custo por mil impressões",
-    'Brand Lift': "Aumento percentual na consciência da marca",
-    'Engajamento': "Interações com o anúncio (curtidas, comentários, compartilhamentos)",
-    'Video Views': "Visualizações do vídeo (3s ou mais)",
-    'CTR': "Taxa de cliques (cliques/impressões)",
     'Cliques': "Número total de cliques no anúncio",
-    'Tempo no Site': "Tempo médio gasto no site após o clique",
-    'Pages per Visit': "Páginas visitadas por sessão",
-    'Video Completions': "Visualizações completas do vídeo",
-    'Lead Generation': "Número de leads captados",
-    'Conversões': "Número de conversões (compras, cadastros, etc.)",
-    'ROAS': "Retorno sobre investimento em publicidade (receita/custo)",
-    'CPA': "Custo por aquisição/conversão",
-    'Valor da Conversão': "Valor médio gerado por conversão",
-    'Leads Qualificados': "Leads que atendem aos critérios de qualidade",
-    'Vendas': "Número total de vendas geradas",
-    'Custo por Lead': "Custo médio para aquisição de cada lead"
+    'CTR': "Taxa de cliques (cliques/impressões)",
+    'Engajamentos': "Interações com o anúncio (curtidas, comentários, compartilhamentos)",
+    'Frequência': "Média de vezes que cada pessoa viu seu anúncio",
+    'Visualizações': "Visualizações do vídeo (3s ou mais)",
+    'ThruPlays': "Visualizações completas do vídeo",
+    'Resultados': "Número de conversões (compras, cadastros, etc.)",
+    'Custo por resultado': "Custo médio por conversão",
 }
 
-# Funções de geração de conteúdo com IA
+# Funções de geração de conteúdo
 def gerar_recomendacao_estrategica(params: Dict[str, Any]) -> str:
     """Gera a recomendação estratégica inicial"""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
-    
+    metas_especificas = [f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]
+
     prompt = f"""
     Como especialista em planejamento de mídia digital, analise os seguintes parâmetros e forneça uma recomendação estratégica:
 
@@ -140,7 +129,7 @@ def gerar_recomendacao_estrategica(params: Dict[str, Any]) -> str:
     **Tipo de Público:** {params['tipo_publico']}
     **Tipos de Criativo:** {", ".join(params['tipo_criativo'])}
     **OKRs Escolhidos:** {", ".join(okrs_escolhidos) if okrs_escolhidos else "A serem definidos"}
-    **Metas Específicas:** {", ".join([f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]) if any(v['selecionada'] and v['valor'] for v in params['metricas'].values()) else "Nenhuma meta específica"}
+    **Metas Específicas:** {", ".join(metas_especificas) if metas_especificas else "Nenhuma meta específica"}
     **Detalhes da Ação:** {params['detalhes_acao'] or "Nenhum"}
     **Observações:** {params['observacoes'] or "Nenhuma"}
 
@@ -165,7 +154,7 @@ def gerar_distribuicao_budget(params: Dict[str, Any], recomendacao_estrategica: 
     etapa_funil = params['etapa_funil']
     okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
     metas_especificas = [f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]
-    
+
     prompt = f"""
     Com base na seguinte recomendação estratégica (Etapa {etapa_funil} do Funil):
     {recomendacao_estrategica}
@@ -203,7 +192,7 @@ def gerar_previsao_resultados(params: Dict[str, Any], recomendacao_estrategica: 
     etapa_funil = params['etapa_funil']
     okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
     metas_especificas = [f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]
-    
+
     prompt = f"""
     Com base na estratégia para {etapa_funil} do funil:
     {recomendacao_estrategica}
@@ -237,7 +226,7 @@ def gerar_recomendacoes_publico(params: Dict[str, Any], recomendacao_estrategica
     """Gera recomendações detalhadas de público-alvo"""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
-    
+
     prompt = f"""
     Para a campanha na etapa {etapa_funil} do funil com:
     - Tipo de Público: {params['tipo_publico']}
@@ -269,7 +258,7 @@ def gerar_cronograma(params: Dict[str, Any], recomendacao_estrategica: str, dist
     """Gera cronograma de implementação"""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
-    
+
     prompt = f"""
     Com base na estratégia para {etapa_funil} do funil:
     {recomendacao_estrategica}
@@ -385,7 +374,7 @@ with tab1:
             with col2:
                 valor = st.text_input(
                     f"Meta para {metrica}",
-                    placeholder=f"Ex: 500.000 {metrica}",
+                    placeholder=f"Ex: 500.000 {metrica.split()[0]}" if " " in metrica else f"Ex: 500.000 {metrica}",
                     key=f"input_{metrica}",
                     disabled=not selecionada
                 )
@@ -441,18 +430,21 @@ with tab1:
                 st.session_state.plano_completo['cronograma'] = gerar_cronograma(params, st.session_state.plano_completo['recomendacao_estrategica'], st.session_state.plano_completo['distribuicao_budget'])
     
     # Exibir resultados
-    if st.session_state.current_step >= 1:
+    if st.session_state.current_step >= 1 and 'params' in st.session_state:
         etapa_funil = st.session_state.params.get('etapa_funil', 'Topo')
         st.success(f"**Etapa do Funil Selecionada:** {etapa_funil}")
         
-        # Mostrar OKRs selecionados
-        okrs_selecionados = [k for k, v in st.session_state.params['metricas'].items() if v['selecionada']]
-        metas_definidas = [f"{k}: {v['valor']}" for k, v in st.session_state.params['metricas'].items() if v['selecionada'] and v['valor']]
-        
-        if okrs_selecionados:
-            st.info(f"**OKRs Selecionados:** {', '.join(okrs_selecionados)}")
-        if metas_definidas:
-            st.info(f"**Metas Definidas:** {', '.join(metas_definidas)}")
+        # Verificar se 'metricas' existe nos parâmetros
+        if 'metricas' in st.session_state.params:
+            okrs_selecionados = [k for k, v in st.session_state.params['metricas'].items() if v['selecionada']]
+            metas_definidas = [f"{k}: {v['valor']}" for k, v in st.session_state.params['metricas'].items() if v['selecionada'] and v['valor']]
+            
+            if okrs_selecionados:
+                st.info(f"**OKRs Selecionados:** {', '.join(okrs_selecionados)}")
+            if metas_definidas:
+                st.info(f"**Metas Definidas:** {', '.join(metas_definidas)}")
+        else:
+            st.warning("Nenhuma métrica foi configurada ainda.")
         
         st.markdown("## 📌 Recomendação Estratégica")
         st.markdown(st.session_state.plano_completo.get('recomendacao_estrategica', 'Em processamento...'))
@@ -508,7 +500,7 @@ with tab2:
         **Campanha:** Conscientização da Marca X  
         **Objetivo:** Aumentar reconhecimento de marca  
         **Etapa do Funil:** Topo  
-        **OKRs Típicos:** Impressões, Alcance, Frequência, CPM, Brand Lift  
+        **OKRs Típicos:** Impressões, Alcance, Frequência, CPM  
         """)
         
         st.markdown("""
@@ -532,14 +524,14 @@ with tab2:
         **Campanha:** Engajamento Produto Y  
         **Objetivo:** Gerar interesse no produto  
         **Etapa do Funil:** Meio  
-        **OKRs Típicos:** Engajamento, CTR, Video Views, Lead Generation  
+        **OKRs Típicos:** CTR, Video Views, Engajamento  
         """)
         
         st.markdown("""
         #### 🎯 Metas Recomendadas:
         - CTR: 1.8-2.5%
         - Video Views: 500.000
-        - Leads: 2.000
+        - Engajamento: 3.5%
         
         #### 📊 Alocação Recomendada:
         | Plataforma | % Budget | Valor (R$) | Criativos Principais |
@@ -555,7 +547,7 @@ with tab2:
         **Campanha:** Vendas Produto Z  
         **Objetivo:** Gerar vendas diretas  
         **Etapa do Funil:** Fundo  
-        **OKRs Típicos:** Conversões, ROAS, CPA, Vendas  
+        **OKRs Típicos:** Conversões, ROAS, CPA  
         """)
         
         st.markdown("""
