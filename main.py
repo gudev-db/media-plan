@@ -345,9 +345,9 @@ with tab1:
             )
             
             localizacao_secundaria = st.text_input(
-                "Localização Secundária (Estados)",
-                placeholder="Ex: SP, MG, RJ",
-                value="SP, MG, RJ"
+                "Localização Secundária (Cidades)",
+                placeholder="Ex: Rio de Janeiro, São Paulo, Cuiabá",
+                value="Rio de Janeiro, São Paulo, Cuiabá"
             )
             
             tipo_publico = st.selectbox(
