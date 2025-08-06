@@ -59,6 +59,18 @@ st.markdown("""
         color: #4f46e5 !important;
         font-weight: 600 !important;
     }
+    .metric-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .metric-name {
+        width: 200px;
+        font-weight: 500;
+    }
+    .metric-input {
+        flex-grow: 1;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -86,29 +98,34 @@ METRICAS_POR_ETAPA = {
     'Fundo': ['Conversões', 'ROAS', 'CPA', 'Valor da Conversão', 'Leads Qualificados', 'Vendas', 'Custo por Lead']
 }
 
-def detectar_etapa_funil(nome_campanha: str) -> str:
-    """Detecta automaticamente a etapa do funil com base no nome da campanha"""
-    nome = nome_campanha.lower()
-    
-    # Palavras-chave para cada etapa
-    topo_keywords = ['awareness', 'consciencia', 'alcance', 'branding', 'marca', 'topo', 'reconhecimento']
-    meio_keywords = ['consideracao', 'consideração', 'engajamento', 'video', 'vídeo', 'traffic', 'tráfego', 'meio']
-    fundo_keywords = ['conversao', 'conversão', 'venda', 'sales', 'lead', 'performance', 'fundo', 'compra']
-    
-    if any(keyword in nome for keyword in topo_keywords):
-        return 'Topo'
-    elif any(keyword in nome for keyword in meio_keywords):
-        return 'Meio'
-    elif any(keyword in nome for keyword in fundo_keywords):
-        return 'Fundo'
-    else:
-        return 'Topo'  # Default para topo de funil se não identificar
+DESCRICOES_METRICAS = {
+    'Impressões': "Número total de vezes que seu anúncio foi exibido",
+    'Alcance': "Número de pessoas únicas que viram seu anúncio",
+    'Frequência': "Média de vezes que cada pessoa viu seu anúncio",
+    'CPM': "Custo por mil impressões",
+    'Brand Lift': "Aumento percentual na consciência da marca",
+    'Engajamento': "Interações com o anúncio (curtidas, comentários, compartilhamentos)",
+    'Video Views': "Visualizações do vídeo (3s ou mais)",
+    'CTR': "Taxa de cliques (cliques/impressões)",
+    'Cliques': "Número total de cliques no anúncio",
+    'Tempo no Site': "Tempo médio gasto no site após o clique",
+    'Pages per Visit': "Páginas visitadas por sessão",
+    'Video Completions': "Visualizações completas do vídeo",
+    'Lead Generation': "Número de leads captados",
+    'Conversões': "Número de conversões (compras, cadastros, etc.)",
+    'ROAS': "Retorno sobre investimento em publicidade (receita/custo)",
+    'CPA': "Custo por aquisição/conversão",
+    'Valor da Conversão': "Valor médio gerado por conversão",
+    'Leads Qualificados': "Leads que atendem aos critérios de qualidade",
+    'Vendas': "Número total de vendas geradas",
+    'Custo por Lead': "Custo médio para aquisição de cada lead"
+}
 
 # Funções de geração de conteúdo com IA
 def gerar_recomendacao_estrategica(params: Dict[str, Any]) -> str:
     """Gera a recomendação estratégica inicial"""
-    etapa_funil = detectar_etapa_funil(params['objetivo_campanha'])
-    okrs_relevantes = METRICAS_POR_ETAPA[etapa_funil]
+    etapa_funil = params['etapa_funil']
+    okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
     
     prompt = f"""
     Como especialista em planejamento de mídia digital, analise os seguintes parâmetros e forneça uma recomendação estratégica:
@@ -122,19 +139,20 @@ def gerar_recomendacao_estrategica(params: Dict[str, Any]) -> str:
     **Localização Secundária:** {params['localizacao_secundaria']}
     **Tipo de Público:** {params['tipo_publico']}
     **Tipos de Criativo:** {", ".join(params['tipo_criativo'])}
-    **OKRs Relevantes para {etapa_funil} do Funil:** {", ".join(okrs_relevantes)}
+    **OKRs Escolhidos:** {", ".join(okrs_escolhidos) if okrs_escolhidos else "A serem definidos"}
+    **Metas Específicas:** {", ".join([f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]) if any(v['selecionada'] and v['valor'] for v in params['metricas'].values()) else "Nenhuma meta específica"}
     **Detalhes da Ação:** {params['detalhes_acao'] or "Nenhum"}
     **Observações:** {params['observacoes'] or "Nenhuma"}
 
     Forneça:
     1. Análise estratégica focada em {etapa_funil} do funil (150-200 palavras)
-    2. Principais oportunidades para a etapa {etapa_funil}
+    2. Principais oportunidades para os OKRs selecionados
     3. Riscos potenciais específicos para esta etapa
-    4. Recomendação geral de abordagem com foco nos OKRs: {", ".join(okrs_relevantes)}
+    4. Recomendação geral de abordagem
 
     Dicas:
-    - Mantenha o foco absoluto nos OKRs relevantes para {etapa_funil} do funil
-    - Considere apenas os tipos de criativo solicitados
+    - Mantenha o foco absoluto nos OKRs selecionados: {", ".join(okrs_escolhidos) if okrs_escolhidos else "gerar sugestões apropriadas"}
+    - Considere as metas específicas quando fornecidas
     - Adapte ao período especificado
 
     Formato: Markdown com headers (##, ###)
@@ -144,7 +162,9 @@ def gerar_recomendacao_estrategica(params: Dict[str, Any]) -> str:
 
 def gerar_distribuicao_budget(params: Dict[str, Any], recomendacao_estrategica: str) -> str:
     """Gera a distribuição de budget baseada na recomendação estratégica"""
-    etapa_funil = detectar_etapa_funil(params['objetivo_campanha'])
+    etapa_funil = params['etapa_funil']
+    okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
+    metas_especificas = [f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]
     
     prompt = f"""
     Com base na seguinte recomendação estratégica (Etapa {etapa_funil} do Funil):
@@ -156,20 +176,22 @@ def gerar_distribuicao_budget(params: Dict[str, Any], recomendacao_estrategica: 
     - Plataformas: {", ".join(params['ferramentas'])}
     - Localizações: Primária ({params['localizacao_primaria']}), Secundária ({params['localizacao_secundaria']})
     - Tipos de Criativo: {", ".join(params['tipo_criativo'])}
+    - OKRs: {", ".join(okrs_escolhidos) if okrs_escolhidos else "A serem otimizados"}
+    - Metas: {", ".join(metas_especificas) if metas_especificas else "Nenhuma específica"}
 
-    Crie uma tabela detalhada de distribuição de budget OTIMIZADA PARA {etapa_funil} DO FUNIL com:
+    Crie uma tabela detalhada de distribuição de budget OTIMIZADA PARA OS OKRs SELECIONADOS com:
     1. Divisão por plataforma (% e valor)
     2. Alocação geográfica (primária vs secundária)
     3. Tipos de criativos recomendados (APENAS: {", ".join(params['tipo_criativo'])})
-    4. Justificativa estratégica para cada alocação considerando a etapa {etapa_funil}
+    4. Justificativa estratégica para cada alocação
 
     REGRAS:
-    - Distribuição deve maximizar os OKRs da etapa {etapa_funil}
+    - Priorize os OKRs selecionados: {", ".join(okrs_escolhidos) if okrs_escolhidos else "otimize para a etapa do funil"}
+    - Considere as metas específicas quando fornecidas
     - Não sugerir criativos fora dos tipos especificados
     - Manter foco absoluto nos estados solicitados
-    - Adaptar ao período da campanha
 
-    Inclua também uma breve análise (50-100 palavras) explicando como a distribuição atende à etapa {etapa_funil}.
+    Inclua também uma breve análise (50-100 palavras) explicando como a distribuição atende aos objetivos.
 
     Formato: Markdown com tabelas (use | para divisão)
     """
@@ -178,8 +200,9 @@ def gerar_distribuicao_budget(params: Dict[str, Any], recomendacao_estrategica: 
 
 def gerar_previsao_resultados(params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
     """Gera previsão de resultados baseada nos parâmetros"""
-    etapa_funil = detectar_etapa_funil(params['objetivo_campanha'])
-    okrs_relevantes = METRICAS_POR_ETAPA[etapa_funil]
+    etapa_funil = params['etapa_funil']
+    okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
+    metas_especificas = [f"{k}: {v['valor']}" for k, v in params['metricas'].items() if v['selecionada'] and v['valor']]
     
     prompt = f"""
     Com base na estratégia para {etapa_funil} do funil:
@@ -188,21 +211,22 @@ def gerar_previsao_resultados(params: Dict[str, Any], recomendacao_estrategica: 
     E na distribuição de budget:
     {distribuicao_budget}
 
-    Estime os resultados ESPERADOS PARA ETAPA {etapa_funil} considerando:
+    Estime os resultados ESPERADOS considerando:
     - Budget total: R$ {params['budget']:,.2f}
     - Período: {params['periodo']}
-    - OKRs Relevantes: {", ".join(okrs_relevantes)}
+    - OKRs: {", ".join(okrs_escolhidos) if okrs_escolhidos else "A serem otimizados"}
+    - Metas: {", ".join(metas_especificas) if metas_especificas else "Nenhuma específica"}
 
     Forneça:
-    1. Tabela com métricas ESPECÍFICAS PARA {etapa_funil} (focar em: {", ".join(okrs_relevantes)})
-    2. Estimativas realistas baseadas em benchmarks de {etapa_funil}
+    1. Tabela com métricas ESPECÍFICAS para os OKRs selecionados
+    2. Estimativas realistas baseadas em benchmarks
     3. Análise de potencial desempenho (50-100 palavras)
-    4. KPIs CHAVE para monitorar em {etapa_funil}
+    4. KPIs CHAVE para monitorar
 
     DICAS:
-    - Ignorar métricas não relevantes para {etapa_funil}
-    - Manter foco nos OKRs: {", ".join(okrs_relevantes)}
-    - Usar benchmarks realistas para a etapa
+    - Destaque os OKRs selecionados: {", ".join(okrs_escolhidos) if okrs_escolhidos else "foco na etapa do funil"}
+    - Considere as metas específicas quando fornecidas
+    - Use benchmarks realistas para o setor
 
     Formato: Markdown com tabelas
     """
@@ -211,7 +235,8 @@ def gerar_previsao_resultados(params: Dict[str, Any], recomendacao_estrategica: 
 
 def gerar_recomendacoes_publico(params: Dict[str, Any], recomendacao_estrategica: str) -> str:
     """Gera recomendações detalhadas de público-alvo"""
-    etapa_funil = detectar_etapa_funil(params['objetivo_campanha'])
+    etapa_funil = params['etapa_funil']
+    okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
     
     prompt = f"""
     Para a campanha na etapa {etapa_funil} do funil com:
@@ -219,20 +244,21 @@ def gerar_recomendacoes_publico(params: Dict[str, Any], recomendacao_estrategica
     - Objetivo: {params['objetivo_campanha']}
     - Plataformas: {", ".join(params['ferramentas'])}
     - Localizações: {params['localizacao_primaria']} (primária), {params['localizacao_secundaria']} (secundária)
+    - OKRs: {", ".join(okrs_escolhidos) if okrs_escolhidos else "A serem otimizados"}
 
-    E considerando a estratégia para {etapa_funil}:
+    E considerando a estratégia geral:
     {recomendacao_estrategica}
 
-    Desenvolva recomendações de público OTIMIZADAS PARA {etapa_funil} DO FUNIL incluindo:
-    1. Segmentação específica para objetivos de {etapa_funil}
-    2. Parâmetros de targeting focados em {etapa_funil}
-    3. Estratégias de expansão adequadas para {etapa_funil}
+    Desenvolva recomendações de público OTIMIZADAS PARA OS OBJETIVOS incluindo:
+    1. Segmentação específica para os OKRs selecionados
+    2. Parâmetros de targeting focados nos objetivos
+    3. Estratégias de expansão adequadas
     4. Considerações sobre frequência e saturação
 
     REGRAS:
     - Manter foco absoluto nos estados especificados
-    - Adaptar recomendações à etapa {etapa_funil}
-    - Priorizar estratégias adequadas para {etapa_funil}
+    - Adaptar recomendações aos OKRs selecionados
+    - Priorizar estratégias adequadas para a etapa {etapa_funil}
 
     Formato: Markdown com listas e headers
     """
@@ -241,7 +267,8 @@ def gerar_recomendacoes_publico(params: Dict[str, Any], recomendacao_estrategica
 
 def gerar_cronograma(params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
     """Gera cronograma de implementação"""
-    etapa_funil = detectar_etapa_funil(params['objetivo_campanha'])
+    etapa_funil = params['etapa_funil']
+    okrs_escolhidos = [k for k, v in params['metricas'].items() if v['selecionada']]
     
     prompt = f"""
     Com base na estratégia para {etapa_funil} do funil:
@@ -250,20 +277,21 @@ def gerar_cronograma(params: Dict[str, Any], recomendacao_estrategica: str, dist
     E na distribuição de budget:
     {distribuicao_budget}
 
-    Crie um cronograma OTIMIZADO PARA ETAPA {etapa_funil} considerando:
+    Crie um cronograma OTIMIZADO considerando:
     - Budget total: R$ {params['budget']:,.2f}
     - Período: {params['periodo']}
     - Plataformas: {", ".join(params['ferramentas'])}
+    - OKRs: {", ".join(okrs_escolhidos) if okrs_escolhidos else "A serem otimizados"}
 
     Inclua:
-    1. Fases de implementação adequadas para {etapa_funil}
+    1. Fases de implementação adequadas
     2. Distribuição temporal do budget
-    3. Marcos importantes para {etapa_funil}
+    3. Marcos importantes
     4. Frequência de ajustes recomendada
 
     DICAS:
-    - Adaptar cronograma aos objetivos de {etapa_funil}
-    - Não incluir fases irrelevantes para {etapa_funil}
+    - Adaptar cronograma aos objetivos específicos
+    - Não incluir fases irrelevantes
     - Manter realismo no período especificado
 
     Formato: Markdown com tabelas ou listas numeradas
@@ -293,6 +321,13 @@ with tab1:
                 index=0
             )
             
+            etapa_funil = st.selectbox(
+                "Etapa do Funil*",
+                ["Topo", "Meio", "Fundo"],
+                index=0,
+                help="Topo: Conscientização | Meio: Consideração | Fundo: Conversão"
+            )
+            
             budget = st.number_input(
                 "Budget Total (R$)*",
                 min_value=1000,
@@ -306,6 +341,7 @@ with tab1:
                 index=0
             )
             
+        with col2:
             ferramentas = st.multiselect(
                 "Ferramentas/Plataformas*",
                 ["Meta Ads (Facebook/Instagram)", "Google Ads", "TikTok", "LinkedIn", 
@@ -313,7 +349,6 @@ with tab1:
                 default=["Meta Ads (Facebook/Instagram)", "Google Ads"]
             )
             
-        with col2:
             localizacao_primaria = st.text_input(
                 "Localização Primária (Estados)*",
                 placeholder="Ex: MT, GO, RS",
@@ -339,6 +374,27 @@ with tab1:
                 default=["Estático", "Vídeo"]
             )
         
+        st.markdown("**Selecione e defina metas para os OKRs relevantes:**")
+        
+        # Criar checkboxes e inputs para métricas da etapa selecionada
+        metricas = {}
+        for metrica in METRICAS_POR_ETAPA[etapa_funil]:
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                selecionada = st.checkbox(metrica, value=True, key=f"check_{metrica}")
+            with col2:
+                valor = st.text_input(
+                    f"Meta para {metrica}",
+                    placeholder=f"Ex: 500.000 {metrica}",
+                    key=f"input_{metrica}",
+                    disabled=not selecionada
+                )
+            metricas[metrica] = {
+                'selecionada': selecionada,
+                'valor': valor,
+                'descricao': DESCRICOES_METRICAS.get(metrica, "")
+            }
+        
         detalhes_acao = st.text_area(
             "Detalhes da Ação*",
             placeholder="Descreva o produto/serviço/evento que será promovido",
@@ -356,14 +412,11 @@ with tab1:
         if not objetivo_campanha or not tipo_campanha or not budget or not ferramentas or not localizacao_primaria or not detalhes_acao:
             st.error("Por favor, preencha todos os campos obrigatórios (*)")
         else:
-            # Detectar etapa do funil automaticamente
-            etapa_funil = detectar_etapa_funil(objetivo_campanha)
-            okrs_relevantes = METRICAS_POR_ETAPA[etapa_funil]
-            
             # Armazenar parâmetros na sessão
             params = {
                 'objetivo_campanha': objetivo_campanha,
                 'tipo_campanha': tipo_campanha,
+                'etapa_funil': etapa_funil,
                 'budget': budget,
                 'periodo': periodo,
                 'ferramentas': ferramentas,
@@ -371,10 +424,9 @@ with tab1:
                 'localizacao_secundaria': localizacao_secundaria,
                 'tipo_publico': tipo_publico,
                 'tipo_criativo': tipo_criativo,
+                'metricas': metricas,
                 'detalhes_acao': detalhes_acao,
-                'observacoes': observacoes,
-                'etapa_funil': etapa_funil,
-                'okrs_relevantes': okrs_relevantes
+                'observacoes': observacoes
             }
             
             st.session_state.current_step = 1
@@ -391,7 +443,16 @@ with tab1:
     # Exibir resultados
     if st.session_state.current_step >= 1:
         etapa_funil = st.session_state.params.get('etapa_funil', 'Topo')
-        st.success(f"**Etapa do Funil Detectada:** {etapa_funil}")
+        st.success(f"**Etapa do Funil Selecionada:** {etapa_funil}")
+        
+        # Mostrar OKRs selecionados
+        okrs_selecionados = [k for k, v in st.session_state.params['metricas'].items() if v['selecionada']]
+        metas_definidas = [f"{k}: {v['valor']}" for k, v in st.session_state.params['metricas'].items() if v['selecionada'] and v['valor']]
+        
+        if okrs_selecionados:
+            st.info(f"**OKRs Selecionados:** {', '.join(okrs_selecionados)}")
+        if metas_definidas:
+            st.info(f"**Metas Definidas:** {', '.join(metas_definidas)}")
         
         st.markdown("## 📌 Recomendação Estratégica")
         st.markdown(st.session_state.plano_completo.get('recomendacao_estrategica', 'Em processamento...'))
@@ -414,7 +475,9 @@ with tab1:
                 f"# 📊 Plano de Mídia Completo ({etapa_funil} do Funil)\n",
                 f"**Campanha:** {st.session_state.params['objetivo_campanha']}",
                 f"**Budget:** R$ {st.session_state.params['budget']:,.2f}",
-                f"**Período:** {st.session_state.params['periodo']}\n",
+                f"**Período:** {st.session_state.params['periodo']}",
+                f"**OKRs Selecionados:** {', '.join(okrs_selecionados) if okrs_selecionados else 'A serem otimizados'}",
+                f"**Metas Definidas:** {', '.join(metas_definidas) if metas_definidas else 'Nenhuma específica'}\n",
                 "## 📌 Recomendação Estratégica",
                 st.session_state.plano_completo['recomendacao_estrategica'],
                 "## 📊 Distribuição de Budget",
@@ -444,24 +507,23 @@ with tab2:
         ### 📋 Exemplo - Topo do Funil (Awareness)
         **Campanha:** Conscientização da Marca X  
         **Objetivo:** Aumentar reconhecimento de marca  
-        **Budget:** R$ 150.000,00  
-        **Período:** 2 meses  
-        **OKRs Relevantes:** Impressões, Alcance, Frequência, CPM, Brand Lift  
+        **Etapa do Funil:** Topo  
+        **OKRs Típicos:** Impressões, Alcance, Frequência, CPM, Brand Lift  
         """)
         
         st.markdown("""
+        #### 🎯 Metas Recomendadas:
+        - Impressões: 5.000.000
+        - Alcance: 2.200.000
+        - Frequência média: 2.3
+        - CPM: R$ 15-20
+        
         #### 📊 Alocação Recomendada:
         | Plataforma | % Budget | Valor (R$) | Criativos Principais |
         |------------|----------|------------|----------------------|
         | Meta Ads | 50% | 75.000 | Vídeo (60%), Estático (40%) |
         | YouTube | 30% | 45.000 | Vídeo (100%) |
         | Programática | 20% | 30.000 | Banner (70%), Vídeo (30%) |
-        
-        #### 📈 Métricas Esperadas:
-        - Impressões: ~5.000.000
-        - Alcance: ~2.200.000
-        - Frequência média: 2.3
-        - CPM: R$ 15-20
         """)
     
     with tab_meio:
@@ -469,23 +531,22 @@ with tab2:
         ### 📋 Exemplo - Meio do Funil (Consideração)
         **Campanha:** Engajamento Produto Y  
         **Objetivo:** Gerar interesse no produto  
-        **Budget:** R$ 80.000,00  
-        **Período:** 1 mês  
-        **OKRs Relevantes:** Engajamento, CTR, Video Views, Lead Generation  
+        **Etapa do Funil:** Meio  
+        **OKRs Típicos:** Engajamento, CTR, Video Views, Lead Generation  
         """)
         
         st.markdown("""
+        #### 🎯 Metas Recomendadas:
+        - CTR: 1.8-2.5%
+        - Video Views: 500.000
+        - Leads: 2.000
+        
         #### 📊 Alocação Recomendada:
         | Plataforma | % Budget | Valor (R$) | Criativos Principais |
         |------------|----------|------------|----------------------|
         | Meta Ads | 40% | 32.000 | Carrossel (50%), Vídeo (50%) |
         | LinkedIn | 30% | 24.000 | Estático (70%), Vídeo (30%) |
         | Google Ads | 30% | 24.000 | Display (60%), Vídeo (40%) |
-        
-        #### 📈 Métricas Esperadas:
-        - CTR: 1.8-2.5%
-        - Video Views: ~500.000
-        - Leads: ~2.000
         """)
     
     with tab_fundo:
@@ -493,22 +554,21 @@ with tab2:
         ### 📋 Exemplo - Fundo do Funil (Conversão)
         **Campanha:** Vendas Produto Z  
         **Objetivo:** Gerar vendas diretas  
-        **Budget:** R$ 120.000,00  
-        **Período:** 3 semanas  
-        **OKRs Relevantes:** Conversões, ROAS, CPA, Vendas  
+        **Etapa do Funil:** Fundo  
+        **OKRs Típicos:** Conversões, ROAS, CPA, Vendas  
         """)
         
         st.markdown("""
+        #### 🎯 Metas Recomendadas:
+        - Conversões: 1.500
+        - ROAS: 3.5x
+        - CPA: R$ 80-100
+        
         #### 📊 Alocação Recomendada:
         | Plataforma | % Budget | Valor (R$) | Criativos Principais |
         |------------|----------|------------|----------------------|
         | Meta Ads | 60% | 72.000 | Coleção (70%), Estático (30%) |
         | Google Ads | 40% | 48.000 | Shopping (100%) |
-        
-        #### 📈 Métricas Esperadas:
-        - Conversões: ~1.500
-        - ROAS: 3.5x
-        - CPA: R$ 80-100
         """)
 
 # Rodapé
