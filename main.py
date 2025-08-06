@@ -86,8 +86,6 @@ if 'plano_completo' not in st.session_state:
     st.session_state.plano_completo = {}
 if 'current_step' not in st.session_state:
     st.session_state.current_step = 0
-if 'etapa_funil' not in st.session_state:
-    st.session_state.etapa_funil = 'Topo'
 
 # Dicionários de métricas por etapa do funil
 METRICAS_POR_ETAPA = {
@@ -316,12 +314,8 @@ with tab1:
                 "Etapa do Funil*",
                 ["Topo", "Meio", "Fundo"],
                 index=0,
-                help="Topo: Conscientização | Meio: Consideração | Fundo: Conversão",
-                key="etapa_funil_select"
+                help="Topo: Conscientização | Meio: Consideração | Fundo: Conversão"
             )
-            
-            # Atualiza a etapa do funil na sessão
-            st.session_state.etapa_funil = etapa_funil
             
             budget = st.number_input(
                 "Budget Total (R$)*",
@@ -373,15 +367,15 @@ with tab1:
         
         # Criar checkboxes e inputs para métricas da etapa selecionada
         metricas = {}
-        for metrica in METRICAS_POR_ETAPA[st.session_state.etapa_funil]:
+        for metrica in METRICAS_POR_ETAPA[etapa_funil]:
             col1, col2 = st.columns([1, 3])
             with col1:
-                selecionada = st.checkbox(metrica, value=True, key=f"check_{metrica}_{st.session_state.etapa_funil}")
+                selecionada = st.checkbox(metrica, value=True, key=f"check_{metrica}")
             with col2:
                 valor = st.text_input(
                     f"Meta para {metrica}",
                     placeholder=f"Ex: 500.000 {metrica.split()[0]}" if " " in metrica else f"Ex: 500.000 {metrica}",
-                    key=f"input_{metrica}_{st.session_state.etapa_funil}",
+                    key=f"input_{metrica}",
                     disabled=not selecionada
                 )
             metricas[metrica] = {
@@ -411,7 +405,7 @@ with tab1:
             params = {
                 'objetivo_campanha': objetivo_campanha,
                 'tipo_campanha': tipo_campanha,
-                'etapa_funil': st.session_state.etapa_funil,
+                'etapa_funil': etapa_funil,
                 'budget': budget,
                 'periodo': periodo,
                 'ferramentas': ferramentas,
@@ -428,7 +422,7 @@ with tab1:
             st.session_state.params = params
             
             # Gerar todo o conteúdo de uma vez
-            with st.spinner(f'Gerando plano completo para {st.session_state.etapa_funil} do funil...'):
+            with st.spinner(f'Gerando plano completo para {etapa_funil} do funil...'):
                 st.session_state.plano_completo['recomendacao_estrategica'] = gerar_recomendacao_estrategica(params)
                 st.session_state.plano_completo['distribuicao_budget'] = gerar_distribuicao_budget(params, st.session_state.plano_completo['recomendacao_estrategica'])
                 st.session_state.plano_completo['previsao_resultados'] = gerar_previsao_resultados(params, st.session_state.plano_completo['recomendacao_estrategica'], st.session_state.plano_completo['distribuicao_budget'])
