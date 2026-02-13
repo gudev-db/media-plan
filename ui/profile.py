@@ -11,7 +11,7 @@ def render_profile():
 
     user_data = st.session_state.get("user_data", {})
 
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 2], gap="small")
 
     with col1:
         if user_data.get("avatar_url"):

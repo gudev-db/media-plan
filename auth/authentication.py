@@ -12,17 +12,20 @@ from auth.session import login_user
 
 
 def render_auth_page():
-    col_spacer_l, col_center, col_spacer_r = st.columns([1, 2, 1])
+    st.markdown(
+        "<div style='max-width:480px;margin:0 auto;'>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("## 📊 Planejamento de Mídia com IA")
+    st.markdown("Faça login ou crie sua conta para continuar.")
+    st.markdown("---")
 
-    with col_center:
-        st.markdown("## 📊 Planejamento de Mídia com IA")
-        st.markdown("Faça login ou crie sua conta para continuar.")
-        st.markdown("---")
+    if st.session_state.get("auth_page") == "register":
+        _render_register_form()
+    else:
+        _render_login_page()
 
-        if st.session_state.get("auth_page") == "register":
-            _render_register_form()
-        else:
-            _render_login_page()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _render_login_page():

@@ -16,8 +16,16 @@ def render_results():
             okrs_selecionados = [k for k, v in st.session_state.params['metricas'].items() if v['selecionada']]
             metas_definidas = [f"{k}: {v['valor']}" for k, v in st.session_state.params['metricas'].items() if v['selecionada'] and v['valor']]
 
-            if okrs_selecionados:
+            kpis_hierarquia = st.session_state.params.get('kpis_hierarquia')
+            if kpis_hierarquia and kpis_hierarquia.get('primarios'):
+                st.info(f"**KPIs Primários:** {', '.join(kpis_hierarquia['primarios'])}")
+                if kpis_hierarquia.get('secundarios'):
+                    st.caption(f"Secundários: {', '.join(kpis_hierarquia['secundarios'])}")
+                if kpis_hierarquia.get('terciarios'):
+                    st.caption(f"Terciários: {', '.join(kpis_hierarquia['terciarios'])}")
+            elif okrs_selecionados:
                 st.info(f"**OKRs Selecionados:** {', '.join(okrs_selecionados)}")
+
             if metas_definidas:
                 st.info(f"**Metas Definidas:** {', '.join(metas_definidas)}")
         else:
@@ -61,7 +69,7 @@ def render_results():
             nome_arquivo = f"plano_midia_{etapa_funil}_{st.session_state.params['objetivo_campanha'][:30]}"
 
             st.markdown("### 📥 Baixar Plano")
-            col_md, col_pdf, col_docx = st.columns(3)
+            col_md, col_pdf, col_docx = st.columns(3, gap="small")
 
             with col_md:
                 st.download_button(

@@ -1,6 +1,13 @@
 import streamlit as st
 
-from utils.constants import METRICAS_POR_ETAPA, DESCRICOES_METRICAS
+from utils.constants import (
+    TIPOS_CAMPANHA,
+    ETAPAS_FUNIL,
+    KPIS_POR_ETAPA,
+    BENCHMARKS_BR,
+    PLATAFORMA_OBJETIVOS,
+    TEMPLATES_ALOCACAO_BUDGET,
+)
 from utils.generators import (
     gerar_recomendacao_estrategica,
     gerar_distribuicao_budget,
@@ -10,11 +17,56 @@ from utils.generators import (
 )
 
 
+def _build_benchmark_context(ferramentas: list) -> str:
+    """Monta texto de benchmarks para as plataformas selecionadas."""
+    linhas = []
+    for plat in ferramentas:
+        bench = BENCHMARKS_BR.get(plat)
+        if not bench:
+            continue
+        partes = []
+        for metrica, vals in bench.items():
+            partes.append(f"{metrica}: {vals['unidade']}{vals['medio']}")
+        linhas.append(f"  {plat}: {' | '.join(partes)}")
+    return "\n".join(linhas) if linhas else ""
+
+
+def _build_kpi_hierarchy_summary(metricas: dict) -> dict:
+    """Resume os KPIs selecionados em primários, secundários e terciários."""
+    primarios = []
+    secundarios = []
+    terciarios = []
+    for nome, info in metricas.items():
+        if info.get("selecionada"):
+            tier = info.get("hierarquia", "")
+            if tier == "primario":
+                primarios.append(nome)
+            elif tier == "secundario":
+                secundarios.append(nome)
+            else:
+                terciarios.append(nome)
+    return {"primarios": primarios, "secundarios": secundarios, "terciarios": terciarios}
+
+
+def _benchmark_help(kpi_nome: str, ferramentas: list) -> str:
+    """Gera help text com benchmarks das plataformas selecionadas para um KPI."""
+    partes = []
+    mapping = {"CPM": "CPM", "CPC": "CPC", "CTR": "CTR", "CPA": "CPA", "ROAS": "ROAS", "CPL": "CPL"}
+    for plat in ferramentas:
+        bench = BENCHMARKS_BR.get(plat, {})
+        for key, label in mapping.items():
+            if key.lower() in kpi_nome.lower() and key in bench:
+                v = bench[key]
+                partes.append(f"{plat}: {v['unidade']}{v['min']}-{v['max']}")
+                break
+    return " | ".join(partes) if partes else ""
+
+
 def render_form(modelo):
     st.header("Informações do Plano de Mídia")
 
     with st.form("plano_midia_form"):
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2, gap="small")
 
         with col1:
             objetivo_campanha = st.text_input(
@@ -25,15 +77,15 @@ def render_form(modelo):
 
             tipo_campanha = st.selectbox(
                 "Tipo de Campanha*",
-                ["Alcance", "Engajamento", "Tráfego", "Conversão"],
+                TIPOS_CAMPANHA,
                 index=0
             )
 
             etapa_funil = st.selectbox(
                 "Etapa do Funil*",
-                ["Topo", "Meio", "Fundo"],
+                ETAPAS_FUNIL,
                 index=0,
-                help="Topo: Conscientização | Meio: Consideração | Fundo: Conversão"
+                help="Consciência: Exposição | Interesse: Atração | Consideração: Avaliação | Intenção: Decisão | Conversão: Ação | Retenção: Fidelização"
             )
 
             budget = st.number_input(
@@ -82,25 +134,111 @@ def render_form(modelo):
                 default=["Estático", "Vídeo"]
             )
 
-        st.markdown("**Selecione e defina metas para os OKRs:**")
-
+        # ── KPIs Hierárquicos ──────────────────────────────────────
+        kpis_etapa = KPIS_POR_ETAPA.get(etapa_funil, {})
         metricas = {}
-        for metrica in METRICAS_POR_ETAPA[etapa_funil]:
-            col1, col2 = st.columns([1, 2])
-            with col1:
-                selecionada = st.checkbox(metrica, value=True, key=f"check_{metrica}")
-            with col2:
-                valor = st.text_input(
-                    f"Meta para {metrica}",
-                    placeholder=f"Ex: 500.000 {metrica.split()[0]}" if " " in metrica else f"Ex: 500.000 {metrica}",
-                    key=f"input_{metrica}",
-                    disabled=not selecionada
-                )
-            metricas[metrica] = {
-                'selecionada': selecionada,
-                'valor': valor,
-                'descricao': DESCRICOES_METRICAS.get(metrica, "")
-            }
+
+        # Primários — sempre visíveis, pré-selecionados
+        primarios = kpis_etapa.get("primarios", [])
+        if primarios:
+            st.markdown("**KPIs Primários** *(indicadores-chave para esta etapa)*")
+            for kpi in primarios:
+                nome = kpi["nome"]
+                bench_help = _benchmark_help(nome, ferramentas)
+                help_txt = kpi["faixa_tipica"]
+                if bench_help:
+                    help_txt += f" — Benchmarks: {bench_help}"
+
+                col_a, col_b = st.columns([1, 2], gap="small")
+                with col_a:
+                    selecionada = st.checkbox(
+                        nome, value=True,
+                        key=f"check_{etapa_funil}_{nome}",
+                        help=kpi["descricao"]
+                    )
+                with col_b:
+                    valor = st.text_input(
+                        f"Meta para {nome}",
+                        placeholder=kpi["faixa_tipica"],
+                        key=f"input_{etapa_funil}_{nome}",
+                        disabled=not selecionada,
+                        help=help_txt
+                    )
+                metricas[nome] = {
+                    "selecionada": selecionada,
+                    "valor": valor,
+                    "descricao": kpi["descricao"],
+                    "hierarquia": "primario",
+                    "formula": kpi["formula"],
+                }
+
+        # Secundários — dentro de expander
+        secundarios = kpis_etapa.get("secundarios", [])
+        if secundarios:
+            with st.expander("Indicadores Secundários"):
+                for kpi in secundarios:
+                    nome = kpi["nome"]
+                    bench_help = _benchmark_help(nome, ferramentas)
+                    help_txt = kpi["faixa_tipica"]
+                    if bench_help:
+                        help_txt += f" — Benchmarks: {bench_help}"
+
+                    col_a, col_b = st.columns([1, 2], gap="small")
+                    with col_a:
+                        selecionada = st.checkbox(
+                            nome, value=False,
+                            key=f"check_{etapa_funil}_{nome}",
+                            help=kpi["descricao"]
+                        )
+                    with col_b:
+                        valor = st.text_input(
+                            f"Meta para {nome}",
+                            placeholder=kpi["faixa_tipica"],
+                            key=f"input_{etapa_funil}_{nome}",
+                            disabled=not selecionada,
+                            help=help_txt
+                        )
+                    metricas[nome] = {
+                        "selecionada": selecionada,
+                        "valor": valor,
+                        "descricao": kpi["descricao"],
+                        "hierarquia": "secundario",
+                        "formula": kpi["formula"],
+                    }
+
+        # Terciários — dentro de expander colapsado
+        terciarios = kpis_etapa.get("terciarios", [])
+        if terciarios:
+            with st.expander("Indicadores Terciários (Avançado)"):
+                for kpi in terciarios:
+                    nome = kpi["nome"]
+                    bench_help = _benchmark_help(nome, ferramentas)
+                    help_txt = kpi["faixa_tipica"]
+                    if bench_help:
+                        help_txt += f" — Benchmarks: {bench_help}"
+
+                    col_a, col_b = st.columns([1, 2], gap="small")
+                    with col_a:
+                        selecionada = st.checkbox(
+                            nome, value=False,
+                            key=f"check_{etapa_funil}_{nome}",
+                            help=kpi["descricao"]
+                        )
+                    with col_b:
+                        valor = st.text_input(
+                            f"Meta para {nome}",
+                            placeholder=kpi["faixa_tipica"],
+                            key=f"input_{etapa_funil}_{nome}",
+                            disabled=not selecionada,
+                            help=help_txt
+                        )
+                    metricas[nome] = {
+                        "selecionada": selecionada,
+                        "valor": valor,
+                        "descricao": kpi["descricao"],
+                        "hierarquia": "terciario",
+                        "formula": kpi["formula"],
+                    }
 
         detalhes_acao = st.text_area(
             "Detalhes da Ação*",
@@ -119,6 +257,9 @@ def render_form(modelo):
         if not objetivo_campanha or not tipo_campanha or not budget or not ferramentas or not localizacao_primaria or not detalhes_acao:
             st.error("Por favor, preencha todos os campos (*)")
         else:
+            benchmarks_contexto = _build_benchmark_context(ferramentas)
+            kpis_hierarquia = _build_kpi_hierarchy_summary(metricas)
+
             params = {
                 'objetivo_campanha': objetivo_campanha,
                 'tipo_campanha': tipo_campanha,
@@ -132,7 +273,9 @@ def render_form(modelo):
                 'tipo_criativo': tipo_criativo,
                 'metricas': metricas,
                 'detalhes_acao': detalhes_acao,
-                'observacoes': observacoes
+                'observacoes': observacoes,
+                'benchmarks_contexto': benchmarks_contexto,
+                'kpis_hierarquia': kpis_hierarquia,
             }
 
             st.session_state.current_step = 1
@@ -145,7 +288,6 @@ def render_form(modelo):
                 pc['previsao_resultados'] = gerar_previsao_resultados(modelo, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
                 pc['recomendacoes_publico'] = gerar_recomendacoes_publico(modelo, params, pc['recomendacao_estrategica'])
                 pc['cronograma'] = gerar_cronograma(modelo, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
-
 
             from auth.session import is_authenticated, get_current_user_id
             if is_authenticated():

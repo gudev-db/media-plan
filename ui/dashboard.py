@@ -29,7 +29,7 @@ def render_dashboard():
         data_str = criado.strftime("%d/%m/%Y %H:%M") if criado else "N/A"
 
         with st.expander(f"📋 {plan['nome_plano']} — {data_str}", expanded=False):
-            col_info1, col_info2 = st.columns(2)
+            col_info1, col_info2 = st.columns(2, gap="small")
             with col_info1:
                 st.markdown(f"**Campanha:** {params.get('objetivo_campanha', 'N/A')}")
                 st.markdown(f"**Budget:** R$ {params.get('budget', 0):,.2f}")
@@ -58,7 +58,7 @@ def render_dashboard():
             st.markdown("---")
 
             # Botões de ação
-            col_pdf, col_docx, col_del = st.columns([2, 2, 1])
+            col_pdf, col_docx, col_del = st.columns([2, 2, 1], gap="small")
 
 
             with col_pdf:
