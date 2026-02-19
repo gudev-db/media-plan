@@ -7,7 +7,6 @@ from utils.docx_generator import generate_docx
 
 
 def render_dashboard():
-    """dashboard com lista de planos salvos do usuário."""
     st.header("📂 Meus Planos de Mídia")
 
     db = get_database()
@@ -62,26 +61,32 @@ def render_dashboard():
 
 
             with col_pdf:
-                pdf_data = generate_pdf(params, resultado)
-                st.download_button(
-                    "📥 Baixar PDF",
-                    data=pdf_data,
-                    file_name=f"plano_{plan['nome_plano'][:20]}.pdf",
-                    mime="application/pdf",
-                    key=f"pdf_{plan_id}",
-                    use_container_width=True,
-                )
+                try:
+                    pdf_data = generate_pdf(params, resultado)
+                    st.download_button(
+                        "📥 Baixar PDF",
+                        data=pdf_data,
+                        file_name=f"plano_{plan['nome_plano'][:20]}.pdf",
+                        mime="application/pdf",
+                        key=f"pdf_{plan_id}",
+                        use_container_width=True,
+                    )
+                except Exception as e:
+                    st.warning(f"Erro ao gerar PDF: {e}")
 
             with col_docx:
-                docx_data = generate_docx(params, resultado)
-                st.download_button(
-                    "📥 Baixar DOCX",
-                    data=docx_data,
-                    file_name=f"plano_{plan['nome_plano'][:20]}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    key=f"docx_{plan_id}",
-                    use_container_width=True,
-                )
+                try:
+                    docx_data = generate_docx(params, resultado)
+                    st.download_button(
+                        "📥 Baixar DOCX",
+                        data=docx_data,
+                        file_name=f"plano_{plan['nome_plano'][:20]}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key=f"docx_{plan_id}",
+                        use_container_width=True,
+                    )
+                except Exception as e:
+                    st.warning(f"Erro ao gerar DOCX: {e}")
 
             with col_del:
                 if st.button(

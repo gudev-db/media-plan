@@ -81,27 +81,33 @@ def render_results():
                 )
 
             with col_pdf:
-                pdf_data = generate_pdf(
-                    st.session_state.params,
-                    st.session_state.plano_completo,
-                )
-                st.download_button(
-                    label="📕 PDF",
-                    data=pdf_data,
-                    file_name=f"{nome_arquivo}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                )
+                try:
+                    pdf_data = generate_pdf(
+                        st.session_state.params,
+                        st.session_state.plano_completo,
+                    )
+                    st.download_button(
+                        label="📕 PDF",
+                        data=pdf_data,
+                        file_name=f"{nome_arquivo}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True,
+                    )
+                except Exception as e:
+                    st.warning(f"Erro ao gerar PDF: {e}")
 
             with col_docx:
-                docx_data = generate_docx(
-                    st.session_state.params,
-                    st.session_state.plano_completo,
-                )
-                st.download_button(
-                    label="📘 Word (DOCX)",
-                    data=docx_data,
-                    file_name=f"{nome_arquivo}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True,
-                )
+                try:
+                    docx_data = generate_docx(
+                        st.session_state.params,
+                        st.session_state.plano_completo,
+                    )
+                    st.download_button(
+                        label="📘 Word (DOCX)",
+                        data=docx_data,
+                        file_name=f"{nome_arquivo}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True,
+                    )
+                except Exception as e:
+                    st.warning(f"Erro ao gerar DOCX: {e}")

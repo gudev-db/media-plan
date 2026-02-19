@@ -1,5 +1,4 @@
 import re
-
 import streamlit as st
 
 from db.connection import get_database
@@ -67,7 +66,6 @@ def _render_login_page():
 
 
 def _render_register_form():
-    """Formulário de cadastro com email/senha."""
     st.subheader("Criar Conta")
 
     with st.form("register_form"):

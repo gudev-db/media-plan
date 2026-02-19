@@ -20,7 +20,6 @@ def _get_benchmark_block(params: Dict[str, Any]) -> str:
     if contexto:
         return f"\n    **Benchmarks Brasil (referência):**\n{contexto}\n"
 
-    # Fallback: gerar a partir das plataformas
     linhas = []
     for plat in params.get('ferramentas', []):
         bench = BENCHMARKS_BR.get(plat)
@@ -42,14 +41,14 @@ def _get_templates_block(params: Dict[str, Any]) -> str:
     return "\n    **Templates de Alocação (referência):**\n" + "\n".join(linhas) + "\n"
 
 
-def gerar_recomendacao_estrategica(modelo, params: Dict[str, Any]) -> str:
-    """Gera a recomendacao estrategica inicial."""
+def gerar_recomendacao_estrategica(modelos, params: Dict[str, Any]) -> str:
+    """Gera a recomendacao estrategica inicial. Usa o modelo Estrategista."""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos, metas_especificas, primarios, secundarios = _extract_okrs(params)
     benchmark_block = _get_benchmark_block(params)
 
     prompt = f"""
-    Como especialista em planejamento de mídia digital, analise os seguintes parâmetros e forneça uma recomendação estratégica:
+    Analise os seguintes parâmetros e forneça uma recomendação estratégica:
 
     **Campanha:** {params['objetivo_campanha']} (Etapa do Funil: {etapa_funil})
     **Tipo de Campanha:** {params['tipo_campanha']}
@@ -81,12 +80,12 @@ def gerar_recomendacao_estrategica(modelo, params: Dict[str, Any]) -> str:
 
     Formato: Markdown com headers (##, ###)
     """
-    response = modelo.generate_content(prompt)
+    response = modelos["estrategista"].generate_content(prompt)
     return response.text
 
 
-def gerar_distribuicao_budget(modelo, params: Dict[str, Any], recomendacao_estrategica: str) -> str:
-    """Gera a distribuicao de budget baseada na recomendacao estrategica."""
+def gerar_distribuicao_budget(modelos, params: Dict[str, Any], recomendacao_estrategica: str) -> str:
+    """Gera a distribuicao de budget. Usa o modelo Controller Financeiro."""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos, metas_especificas, primarios, secundarios = _extract_okrs(params)
     benchmark_block = _get_benchmark_block(params)
@@ -125,12 +124,12 @@ def gerar_distribuicao_budget(modelo, params: Dict[str, Any], recomendacao_estra
 
     Formato: Markdown com tabelas (use | para divisão)
     """
-    response = modelo.generate_content(prompt)
+    response = modelos["financeiro"].generate_content(prompt)
     return response.text
 
 
-def gerar_previsao_resultados(modelo, params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
-    """Gera previsao de resultados baseada nos parametros."""
+def gerar_previsao_resultados(modelos, params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
+    """Gera previsao de resultados. Usa o modelo Analista de Performance."""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos, metas_especificas, primarios, secundarios = _extract_okrs(params)
     benchmark_block = _get_benchmark_block(params)
@@ -166,12 +165,12 @@ def gerar_previsao_resultados(modelo, params: Dict[str, Any], recomendacao_estra
 
     Formato: Markdown com tabelas
     """
-    response = modelo.generate_content(prompt)
+    response = modelos["performance"].generate_content(prompt)
     return response.text
 
 
-def gerar_recomendacoes_publico(modelo, params: Dict[str, Any], recomendacao_estrategica: str) -> str:
-    """Gera recomendacoes detalhadas de publico-alvo."""
+def gerar_recomendacoes_publico(modelos, params: Dict[str, Any], recomendacao_estrategica: str) -> str:
+    """Gera recomendacoes de publico-alvo. Usa o modelo Especialista de Audiência."""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos, _, primarios, secundarios = _extract_okrs(params)
     benchmark_block = _get_benchmark_block(params)
@@ -203,12 +202,12 @@ def gerar_recomendacoes_publico(modelo, params: Dict[str, Any], recomendacao_est
 
     Formato: Markdown com listas e headers
     """
-    response = modelo.generate_content(prompt)
+    response = modelos["audiencia"].generate_content(prompt)
     return response.text
 
 
-def gerar_cronograma(modelo, params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
-    """Gera cronograma de implementacao."""
+def gerar_cronograma(modelos, params: Dict[str, Any], recomendacao_estrategica: str, distribuicao_budget: str) -> str:
+    """Gera cronograma de implementacao. Usa o modelo Gestor de Projetos."""
     etapa_funil = params['etapa_funil']
     okrs_escolhidos, _, primarios, secundarios = _extract_okrs(params)
 
@@ -241,5 +240,5 @@ def gerar_cronograma(modelo, params: Dict[str, Any], recomendacao_estrategica: s
 
     Formato: Markdown com tabelas ou listas numeradas
     """
-    response = modelo.generate_content(prompt)
+    response = modelos["gestor"].generate_content(prompt)
     return response.text

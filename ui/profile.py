@@ -6,7 +6,6 @@ from db.user_repository import update_profile, get_user_by_id
 
 
 def render_profile():
-    """Renderiza página de perfil do usuário com formulário de edição."""
     st.header("⚙️ Meu Perfil")
 
     user_data = st.session_state.get("user_data", {})

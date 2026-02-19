@@ -18,7 +18,6 @@ from utils.generators import (
 
 
 def _build_benchmark_context(ferramentas: list) -> str:
-    """Monta texto de benchmarks para as plataformas selecionadas."""
     linhas = []
     for plat in ferramentas:
         bench = BENCHMARKS_BR.get(plat)
@@ -32,7 +31,6 @@ def _build_benchmark_context(ferramentas: list) -> str:
 
 
 def _build_kpi_hierarchy_summary(metricas: dict) -> dict:
-    """Resume os KPIs selecionados em primários, secundários e terciários."""
     primarios = []
     secundarios = []
     terciarios = []
@@ -49,7 +47,6 @@ def _build_kpi_hierarchy_summary(metricas: dict) -> dict:
 
 
 def _benchmark_help(kpi_nome: str, ferramentas: list) -> str:
-    """Gera help text com benchmarks das plataformas selecionadas para um KPI."""
     partes = []
     mapping = {"CPM": "CPM", "CPC": "CPC", "CTR": "CTR", "CPA": "CPA", "ROAS": "ROAS", "CPL": "CPL"}
     for plat in ferramentas:
@@ -62,7 +59,7 @@ def _benchmark_help(kpi_nome: str, ferramentas: list) -> str:
     return " | ".join(partes) if partes else ""
 
 
-def render_form(modelo):
+def render_form(modelos):
     st.header("Informações do Plano de Mídia")
 
     with st.form("plano_midia_form"):
@@ -138,7 +135,7 @@ def render_form(modelo):
         kpis_etapa = KPIS_POR_ETAPA.get(etapa_funil, {})
         metricas = {}
 
-        # Primários — sempre visíveis, pré-selecionados
+        # Primários 
         primarios = kpis_etapa.get("primarios", [])
         if primarios:
             st.markdown("**KPIs Primários** *(indicadores-chave para esta etapa)*")
@@ -172,7 +169,7 @@ def render_form(modelo):
                     "formula": kpi["formula"],
                 }
 
-        # Secundários — dentro de expander
+        # Secundários 
         secundarios = kpis_etapa.get("secundarios", [])
         if secundarios:
             with st.expander("Indicadores Secundários"):
@@ -206,7 +203,7 @@ def render_form(modelo):
                         "formula": kpi["formula"],
                     }
 
-        # Terciários — dentro de expander colapsado
+        # Terciários 
         terciarios = kpis_etapa.get("terciarios", [])
         if terciarios:
             with st.expander("Indicadores Terciários (Avançado)"):
@@ -283,11 +280,23 @@ def render_form(modelo):
 
             with st.spinner(f'Gerando plano completo para {etapa_funil} do funil...'):
                 pc = st.session_state.plano_completo
-                pc['recomendacao_estrategica'] = gerar_recomendacao_estrategica(modelo, params)
-                pc['distribuicao_budget'] = gerar_distribuicao_budget(modelo, params, pc['recomendacao_estrategica'])
-                pc['previsao_resultados'] = gerar_previsao_resultados(modelo, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
-                pc['recomendacoes_publico'] = gerar_recomendacoes_publico(modelo, params, pc['recomendacao_estrategica'])
-                pc['cronograma'] = gerar_cronograma(modelo, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
+
+                # Etapa 1 - Estrategista (sequencial)
+                pc['recomendacao_estrategica'] = gerar_recomendacao_estrategica(modelos, params)
+
+                # Etapa 2 - Controller Financeiro (depende de 1)
+                pc['distribuicao_budget'] = gerar_distribuicao_budget(modelos, params, pc['recomendacao_estrategica'])
+
+                # Etapas 3, 4, 5 - em paralelo (dependem de 1 e 2, não entre si)
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=3) as executor:
+                    f_prev = executor.submit(gerar_previsao_resultados, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
+                    f_pub = executor.submit(gerar_recomendacoes_publico, modelos, params, pc['recomendacao_estrategica'])
+                    f_cron = executor.submit(gerar_cronograma, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
+
+                    pc['previsao_resultados'] = f_prev.result()
+                    pc['recomendacoes_publico'] = f_pub.result()
+                    pc['cronograma'] = f_cron.result()
 
             from auth.session import is_authenticated, get_current_user_id
             if is_authenticated():

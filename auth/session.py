@@ -20,7 +20,6 @@ def init_auth_state():
 
 
 def login_user(user: Dict[str, Any]):
-    """Popula session state após autenticação (qualquer método)."""
     st.session_state.authenticated = True
     st.session_state.user_id = str(user["_id"])
     st.session_state.user_nome = user.get("nome", "Usuário")
@@ -43,6 +42,5 @@ def is_authenticated() -> bool:
 
 
 def get_current_user_id() -> Optional[ObjectId]:
-    """Retorna ObjectId do usuário atual, ou None."""
     uid = st.session_state.get("user_id")
     return ObjectId(uid) if uid else None

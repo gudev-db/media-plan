@@ -4,7 +4,6 @@ from auth.session import logout_user, is_authenticated
 
 
 def render_sidebar():
-    """Renderiza sidebar com navegação e info do usuário. Retorna página selecionada."""
     with st.sidebar:
         if not is_authenticated():
             return None
@@ -21,7 +20,7 @@ def render_sidebar():
         )
 
         st.markdown("---")
-        if st.button("🚪 Sair", use_container_width=True):
+        if st.button("Sair", use_container_width=True):
             logout_user()
             try:
                 if hasattr(st, "user") and st.user.is_logged_in:

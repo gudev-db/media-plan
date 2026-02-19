@@ -1,4 +1,3 @@
-# ── Tipos de Campanha ──────────────────────────────────────────────
 TIPOS_CAMPANHA = [
     "Reconhecimento de Marca",
     "Alcance",
@@ -12,8 +11,6 @@ TIPOS_CAMPANHA = [
     "Remarketing/Retargeting",
     "Branding Institucional",
 ]
-
-# ── Etapas do Funil ───────────────────────────────────────────────
 ETAPAS_FUNIL = [
     "Consciência (Awareness)",
     "Interesse",
@@ -22,14 +19,11 @@ ETAPAS_FUNIL = [
     "Conversão/Ação",
     "Retenção/Fidelização",
 ]
-
 LEGACY_FUNNEL_MAP = {
     "Topo": "Consciência (Awareness)",
     "Meio": "Consideração",
     "Fundo": "Conversão/Ação",
 }
-
-# ── KPIs Hierárquicos por Etapa do Funil ──────────────────────────
 KPIS_POR_ETAPA = {
     "Consciência (Awareness)": {
         "primarios": [
@@ -87,18 +81,67 @@ KPIS_POR_ETAPA = {
         ],
         "terciarios": [
             {
-                "nome": "Visualizações de Vídeo (3s+)",
-                "formula": "Total de views com 3+ segundos",
-                "faixa_tipica": "R$0.02-0.10 por view",
-                "quando_usar": "Quando criativos incluem vídeo",
-                "descricao": "Visualizações de vídeo com pelo menos 3 segundos",
+                "nome": "Visualizações",
+                "formula": "Total de visualizações do anúncio/vídeo",
+                "faixa_tipica": "R$0.02-0.10 por view; 3s+ para vídeo",
+                "quando_usar": "Para medir volume de views em vídeo ou conteúdo",
+                "descricao": "Total de visualizações do anúncio ou vídeo",
             },
             {
-                "nome": "Engajamentos",
-                "formula": "Curtidas + Comentários + Compartilhamentos",
+                "nome": "Engajamento",
+                "formula": "Curtidas + Comentários + Compartilhamentos + Salvamentos",
                 "faixa_tipica": "0.5-2% de taxa sobre impressões",
-                "quando_usar": "Indicador secundário de ressonância em awareness",
-                "descricao": "Interações totais com o anúncio",
+                "quando_usar": "Indicador de ressonância e interação",
+                "descricao": "Total de interações com o anúncio",
+            },
+            {
+                "nome": "Comentários",
+                "formula": "Total de comentários no anúncio",
+                "faixa_tipica": "0.01-0.1% das impressões",
+                "quando_usar": "Para medir nível de conversa e interesse ativo",
+                "descricao": "Número de comentários recebidos no anúncio",
+            },
+            {
+                "nome": "Custo Total",
+                "formula": "Soma de todo investimento na campanha",
+                "faixa_tipica": "= Budget alocado para a etapa",
+                "quando_usar": "Para controlar gasto total vs. planejado",
+                "descricao": "Investimento total realizado na campanha",
+            },
+            {
+                "nome": "Custo Diário",
+                "formula": "Custo total / Dias de veiculação",
+                "faixa_tipica": "Budget / dias do período",
+                "quando_usar": "Para monitorar pacing diário de investimento",
+                "descricao": "Valor médio gasto por dia de campanha",
+            },
+            {
+                "nome": "Cliques",
+                "formula": "Total de cliques no anúncio",
+                "faixa_tipica": "Depende de CTR e volume de impressões",
+                "quando_usar": "Indicador secundário em awareness; foco é exposição",
+                "descricao": "Número total de cliques no anúncio",
+            },
+            {
+                "nome": "CTR",
+                "formula": "(Cliques / Impressões) x 100",
+                "faixa_tipica": "0.3-1.5% para awareness (menor que outras etapas)",
+                "quando_usar": "Para monitorar atratividade do criativo",
+                "descricao": "Taxa de cliques sobre impressões",
+            },
+            {
+                "nome": "CPC",
+                "formula": "Custo total / Cliques",
+                "faixa_tipica": "R$0.30-3.00 dependendo da plataforma",
+                "quando_usar": "Para referência; não é métrica principal em awareness",
+                "descricao": "Custo médio por clique",
+            },
+            {
+                "nome": "CPA",
+                "formula": "Custo total / Total de conversões",
+                "faixa_tipica": "Muito alto em awareness; não é foco",
+                "quando_usar": "Apenas para referência de baseline",
+                "descricao": "Custo médio por aquisição/conversão",
             },
         ],
     },
@@ -163,6 +206,76 @@ KPIS_POR_ETAPA = {
                 "faixa_tipica": "0.2-1% do alcance",
                 "quando_usar": "Sinal forte de intenção futura",
                 "descricao": "Número de vezes que o conteúdo foi salvo",
+            },
+            {
+                "nome": "Impressões",
+                "formula": "Total de exibições do anúncio",
+                "faixa_tipica": "Depende de budget e CPM da plataforma",
+                "quando_usar": "Para monitorar volume de exposição",
+                "descricao": "Número total de vezes que seu anúncio foi exibido",
+            },
+            {
+                "nome": "CPM",
+                "formula": "(Custo total / Impressões) x 1000",
+                "faixa_tipica": "R$8-25 dependendo da plataforma",
+                "quando_usar": "Para monitorar eficiência de distribuição",
+                "descricao": "Custo por mil impressões",
+            },
+            {
+                "nome": "Alcance",
+                "formula": "Usuários únicos impactados",
+                "faixa_tipica": "Varia por budget e segmentação",
+                "quando_usar": "Para monitorar expansão de audiência",
+                "descricao": "Número de pessoas únicas que viram seu anúncio",
+            },
+            {
+                "nome": "Frequência",
+                "formula": "Impressões / Alcance",
+                "faixa_tipica": "2-4 para interesse; monitorar fadiga",
+                "quando_usar": "Para controlar saturação de audiência",
+                "descricao": "Média de vezes que cada pessoa viu seu anúncio",
+            },
+            {
+                "nome": "Visualizações",
+                "formula": "Total de visualizações do anúncio/vídeo",
+                "faixa_tipica": "R$0.02-0.10 por view",
+                "quando_usar": "Para medir volume de views em vídeo ou conteúdo",
+                "descricao": "Total de visualizações do anúncio ou vídeo",
+            },
+            {
+                "nome": "Engajamento",
+                "formula": "Curtidas + Comentários + Compartilhamentos + Salvamentos",
+                "faixa_tipica": "1-3% de taxa sobre impressões",
+                "quando_usar": "Indicador agregado de interação",
+                "descricao": "Total de interações com o anúncio",
+            },
+            {
+                "nome": "Comentários",
+                "formula": "Total de comentários no anúncio",
+                "faixa_tipica": "0.02-0.2% das impressões",
+                "quando_usar": "Para medir nível de conversa e interesse ativo",
+                "descricao": "Número de comentários recebidos no anúncio",
+            },
+            {
+                "nome": "CPA",
+                "formula": "Custo total / Total de conversões",
+                "faixa_tipica": "R$20-150 dependendo do segmento",
+                "quando_usar": "Para referência; não é foco em etapa de interesse",
+                "descricao": "Custo médio por aquisição/conversão",
+            },
+            {
+                "nome": "Custo Total",
+                "formula": "Soma de todo investimento na campanha",
+                "faixa_tipica": "= Budget alocado para a etapa",
+                "quando_usar": "Para controlar gasto total vs. planejado",
+                "descricao": "Investimento total realizado na campanha",
+            },
+            {
+                "nome": "Custo Diário",
+                "formula": "Custo total / Dias de veiculação",
+                "faixa_tipica": "Budget / dias do período",
+                "quando_usar": "Para monitorar pacing diário de investimento",
+                "descricao": "Valor médio gasto por dia de campanha",
             },
         ],
     },
@@ -235,6 +348,76 @@ KPIS_POR_ETAPA = {
                 "quando_usar": "Para otimizar custo de interação",
                 "descricao": "Custo médio por interação com o conteúdo",
             },
+            {
+                "nome": "Cliques",
+                "formula": "Total de cliques no anúncio",
+                "faixa_tipica": "Depende de CTR e volume de impressões",
+                "quando_usar": "Para medir volume de tráfego gerado",
+                "descricao": "Número total de cliques no anúncio",
+            },
+            {
+                "nome": "Impressões",
+                "formula": "Total de exibições do anúncio",
+                "faixa_tipica": "Depende de budget e CPM",
+                "quando_usar": "Para monitorar volume de exposição",
+                "descricao": "Número total de vezes que seu anúncio foi exibido",
+            },
+            {
+                "nome": "Alcance",
+                "formula": "Usuários únicos impactados",
+                "faixa_tipica": "Varia por budget e segmentação",
+                "quando_usar": "Para monitorar expansão de audiência",
+                "descricao": "Número de pessoas únicas que viram seu anúncio",
+            },
+            {
+                "nome": "Frequência",
+                "formula": "Impressões / Alcance",
+                "faixa_tipica": "2-5 para consideração",
+                "quando_usar": "Para controlar saturação; frequência maior aceitável nesta etapa",
+                "descricao": "Média de vezes que cada pessoa viu seu anúncio",
+            },
+            {
+                "nome": "Visualizações",
+                "formula": "Total de visualizações do anúncio/vídeo",
+                "faixa_tipica": "R$0.02-0.10 por view",
+                "quando_usar": "Para medir consumo de conteúdo demonstrativo",
+                "descricao": "Total de visualizações do anúncio ou vídeo",
+            },
+            {
+                "nome": "Engajamento",
+                "formula": "Curtidas + Comentários + Compartilhamentos + Salvamentos",
+                "faixa_tipica": "2-6% de taxa para conteúdo de consideração",
+                "quando_usar": "Indicador de avaliação ativa do conteúdo",
+                "descricao": "Total de interações com o anúncio",
+            },
+            {
+                "nome": "Comentários",
+                "formula": "Total de comentários no anúncio",
+                "faixa_tipica": "0.02-0.3% das impressões",
+                "quando_usar": "Para medir dúvidas e interesse qualificado",
+                "descricao": "Número de comentários recebidos no anúncio",
+            },
+            {
+                "nome": "CPA",
+                "formula": "Custo total / Total de conversões",
+                "faixa_tipica": "R$20-150 dependendo do segmento",
+                "quando_usar": "Para referência de custo de micro-conversões",
+                "descricao": "Custo médio por aquisição/conversão",
+            },
+            {
+                "nome": "Custo Total",
+                "formula": "Soma de todo investimento na campanha",
+                "faixa_tipica": "= Budget alocado para a etapa",
+                "quando_usar": "Para controlar gasto total vs. planejado",
+                "descricao": "Investimento total realizado na campanha",
+            },
+            {
+                "nome": "Custo Diário",
+                "formula": "Custo total / Dias de veiculação",
+                "faixa_tipica": "Budget / dias do período",
+                "quando_usar": "Para monitorar pacing diário de investimento",
+                "descricao": "Valor médio gasto por dia de campanha",
+            },
         ],
     },
     "Intenção": {
@@ -298,6 +481,90 @@ KPIS_POR_ETAPA = {
                 "faixa_tipica": "R$1-10 por mensagem recebida",
                 "quando_usar": "Para campanhas com CTA de mensagem",
                 "descricao": "Total de conversas iniciadas pelo usuário",
+            },
+            {
+                "nome": "Impressões",
+                "formula": "Total de exibições do anúncio",
+                "faixa_tipica": "Depende de budget e CPM",
+                "quando_usar": "Para monitorar volume de exposição",
+                "descricao": "Número total de vezes que seu anúncio foi exibido",
+            },
+            {
+                "nome": "Cliques",
+                "formula": "Total de cliques no anúncio",
+                "faixa_tipica": "Depende de CTR e volume de impressões",
+                "quando_usar": "Para medir volume de tráfego qualificado",
+                "descricao": "Número total de cliques no anúncio",
+            },
+            {
+                "nome": "CTR",
+                "formula": "(Cliques / Impressões) x 100",
+                "faixa_tipica": "1-3% para campanhas de intenção",
+                "quando_usar": "Para monitorar eficiência dos criativos",
+                "descricao": "Taxa de cliques sobre impressões",
+            },
+            {
+                "nome": "CPM",
+                "formula": "(Custo total / Impressões) x 1000",
+                "faixa_tipica": "R$15-40 para audiências de intenção",
+                "quando_usar": "Para monitorar custo de distribuição",
+                "descricao": "Custo por mil impressões",
+            },
+            {
+                "nome": "CPA",
+                "formula": "Custo total / Total de conversões",
+                "faixa_tipica": "R$20-150 dependendo do segmento",
+                "quando_usar": "Para avaliar custo de micro-conversões (leads, cadastros)",
+                "descricao": "Custo médio por aquisição/conversão",
+            },
+            {
+                "nome": "Alcance",
+                "formula": "Usuários únicos impactados",
+                "faixa_tipica": "Menor que awareness; audiência mais qualificada",
+                "quando_usar": "Para monitorar tamanho da audiência atingida",
+                "descricao": "Número de pessoas únicas que viram seu anúncio",
+            },
+            {
+                "nome": "Frequência",
+                "formula": "Impressões / Alcance",
+                "faixa_tipica": "3-6 para intenção; remarketing aceita mais",
+                "quando_usar": "Para controlar saturação em audiências quentes",
+                "descricao": "Média de vezes que cada pessoa viu seu anúncio",
+            },
+            {
+                "nome": "Visualizações",
+                "formula": "Total de visualizações do anúncio/vídeo",
+                "faixa_tipica": "R$0.03-0.15 por view",
+                "quando_usar": "Para vídeos demonstrativos de produto/serviço",
+                "descricao": "Total de visualizações do anúncio ou vídeo",
+            },
+            {
+                "nome": "Engajamento",
+                "formula": "Curtidas + Comentários + Compartilhamentos + Salvamentos",
+                "faixa_tipica": "1-4% de taxa sobre impressões",
+                "quando_usar": "Indicador de interesse qualificado",
+                "descricao": "Total de interações com o anúncio",
+            },
+            {
+                "nome": "Comentários",
+                "formula": "Total de comentários no anúncio",
+                "faixa_tipica": "0.02-0.3% das impressões",
+                "quando_usar": "Para medir dúvidas pré-conversão",
+                "descricao": "Número de comentários recebidos no anúncio",
+            },
+            {
+                "nome": "Custo Total",
+                "formula": "Soma de todo investimento na campanha",
+                "faixa_tipica": "= Budget alocado para a etapa",
+                "quando_usar": "Para controlar gasto total vs. planejado",
+                "descricao": "Investimento total realizado na campanha",
+            },
+            {
+                "nome": "Custo Diário",
+                "formula": "Custo total / Dias de veiculação",
+                "faixa_tipica": "Budget / dias do período",
+                "quando_usar": "Para monitorar pacing diário de investimento",
+                "descricao": "Valor médio gasto por dia de campanha",
             },
         ],
     },
@@ -369,6 +636,83 @@ KPIS_POR_ETAPA = {
                 "faixa_tipica": "1.1-1.5x no período de campanha",
                 "quando_usar": "Para campanhas com público recorrente",
                 "descricao": "Média de compras por cliente único",
+            },
+            {
+                "nome": "Impressões",
+                "formula": "Total de exibições do anúncio",
+                "faixa_tipica": "Depende de budget e CPM",
+                "quando_usar": "Para monitorar volume de exposição",
+                "descricao": "Número total de vezes que seu anúncio foi exibido",
+            },
+            {
+                "nome": "Cliques",
+                "formula": "Total de cliques no anúncio",
+                "faixa_tipica": "Depende de CTR e volume de impressões",
+                "quando_usar": "Para medir volume de tráfego ao site",
+                "descricao": "Número total de cliques no anúncio",
+            },
+            {
+                "nome": "CPC",
+                "formula": "Custo total / Cliques",
+                "faixa_tipica": "R$1.00-8.00 para público de conversão",
+                "quando_usar": "Para monitorar custo de tráfego qualificado",
+                "descricao": "Custo médio por clique",
+            },
+            {
+                "nome": "CPM",
+                "formula": "(Custo total / Impressões) x 1000",
+                "faixa_tipica": "R$15-45 para audiências de conversão",
+                "quando_usar": "Para monitorar custo de distribuição",
+                "descricao": "Custo por mil impressões",
+            },
+            {
+                "nome": "Alcance",
+                "formula": "Usuários únicos impactados",
+                "faixa_tipica": "Audiência menor e mais qualificada",
+                "quando_usar": "Para monitorar cobertura da audiência-alvo",
+                "descricao": "Número de pessoas únicas que viram seu anúncio",
+            },
+            {
+                "nome": "Frequência",
+                "formula": "Impressões / Alcance",
+                "faixa_tipica": "4-8 para conversão; remarketing aceita alta frequência",
+                "quando_usar": "Para controlar repetição em audiências de conversão",
+                "descricao": "Média de vezes que cada pessoa viu seu anúncio",
+            },
+            {
+                "nome": "Visualizações",
+                "formula": "Total de visualizações do anúncio/vídeo",
+                "faixa_tipica": "R$0.03-0.15 por view",
+                "quando_usar": "Para vídeos de produto/depoimentos",
+                "descricao": "Total de visualizações do anúncio ou vídeo",
+            },
+            {
+                "nome": "Engajamento",
+                "formula": "Curtidas + Comentários + Compartilhamentos + Salvamentos",
+                "faixa_tipica": "1-3% de taxa sobre impressões",
+                "quando_usar": "Indicador secundário de ressonância",
+                "descricao": "Total de interações com o anúncio",
+            },
+            {
+                "nome": "Comentários",
+                "formula": "Total de comentários no anúncio",
+                "faixa_tipica": "0.01-0.2% das impressões",
+                "quando_usar": "Para medir dúvidas e social proof",
+                "descricao": "Número de comentários recebidos no anúncio",
+            },
+            {
+                "nome": "Custo Total",
+                "formula": "Soma de todo investimento na campanha",
+                "faixa_tipica": "= Budget alocado para a etapa",
+                "quando_usar": "Para controlar gasto total vs. planejado",
+                "descricao": "Investimento total realizado na campanha",
+            },
+            {
+                "nome": "Custo Diário",
+                "formula": "Custo total / Dias de veiculação",
+                "faixa_tipica": "Budget / dias do período",
+                "quando_usar": "Para monitorar pacing diário de investimento",
+                "descricao": "Valor médio gasto por dia de campanha",
             },
         ],
     },
@@ -475,7 +819,7 @@ PLATAFORMA_OBJETIVOS = {
     ],
 }
 
-# ── Benchmarks do Mercado Brasileiro ──────────────────────────────
+# Benchmarks do Mercado Brasileiro 
 BENCHMARKS_BR = {
     "Meta Ads (Facebook/Instagram)": {
         "CPM": {"min": 8.0, "max": 25.0, "medio": 15.0, "unidade": "R$"},
@@ -532,7 +876,7 @@ BENCHMARKS_BR = {
     },
 }
 
-# ── Templates de Alocação de Budget ───────────────────────────────
+# Templates de Alocação de Budget
 TEMPLATES_ALOCACAO_BUDGET = {
     "Marca Nova / Lançamento": {
         "descricao": "Foco em awareness e construção de audiência",
@@ -591,9 +935,6 @@ TEMPLATES_ALOCACAO_BUDGET = {
     },
 }
 
-
-# ── Backward Compatibility ────────────────────────────────────────
-
 def _build_descricoes():
     """Flat dict nome→descrição extraído de KPIS_POR_ETAPA."""
     desc = {}
@@ -603,7 +944,6 @@ def _build_descricoes():
                 if kpi["nome"] not in desc:
                     desc[kpi["nome"]] = kpi["descricao"]
     return desc
-
 
 def _build_metricas_por_etapa():
     """Flat list de nomes de KPIs por etapa (compat com código antigo)."""
@@ -619,7 +959,6 @@ def _build_metricas_por_etapa():
         if new_key in result:
             result[old_key] = result[new_key]
     return result
-
 
 DESCRICOES_METRICAS = _build_descricoes()
 METRICAS_POR_ETAPA = _build_metricas_por_etapa()
