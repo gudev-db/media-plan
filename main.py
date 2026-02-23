@@ -2,7 +2,7 @@ import streamlit as st
 
 from config.config import init_page, init_gemini_models, init_session_state
 from auth.session import init_auth_state, is_authenticated
-from auth.authentication import render_auth_page, handle_google_callback
+from auth.authentication import render_auth_page
 from utils.styles import apply_custom_css
 from ui.sidebar import render_sidebar
 from ui.form import render_form
@@ -17,16 +17,13 @@ apply_custom_css()
 init_session_state()
 init_auth_state()
 
-
- # handle_google_callback()
-
 if not is_authenticated():
     render_auth_page()
     st.stop()
+
 modelos = init_gemini_models()
 current_page = render_sidebar()
 
-# Router de páginas
 if current_page == "📋 Criar Plano":
     st.title("📊 IA para Planejamento de Mídia")
     st.markdown(

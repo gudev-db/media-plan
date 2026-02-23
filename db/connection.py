@@ -13,6 +13,5 @@ def get_database():
 
 def _ensure_indexes(db):
     db.users.create_index("email", unique=True)
-    db.users.create_index("google_sub", unique=True, sparse=True)
     db.plans.create_index("user_id")
     db.plans.create_index([("user_id", 1), ("criado_em", -1)])

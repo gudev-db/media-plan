@@ -782,7 +782,6 @@ KPIS_POR_ETAPA = {
     },
 }
 
-# ── Mapeamento Plataforma → Objetivos ─────────────────────────────
 PLATAFORMA_OBJETIVOS = {
     "Meta Ads (Facebook/Instagram)": [
         "Reconhecimento de Marca", "Alcance", "Tráfego", "Engajamento",
@@ -819,7 +818,6 @@ PLATAFORMA_OBJETIVOS = {
     ],
 }
 
-# Benchmarks do Mercado Brasileiro 
 BENCHMARKS_BR = {
     "Meta Ads (Facebook/Instagram)": {
         "CPM": {"min": 8.0, "max": 25.0, "medio": 15.0, "unidade": "R$"},
@@ -876,7 +874,6 @@ BENCHMARKS_BR = {
     },
 }
 
-# Templates de Alocação de Budget
 TEMPLATES_ALOCACAO_BUDGET = {
     "Marca Nova / Lançamento": {
         "descricao": "Foco em awareness e construção de audiência",

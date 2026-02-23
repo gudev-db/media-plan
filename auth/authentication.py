@@ -5,7 +5,6 @@ from db.connection import get_database
 from db.user_repository import (
     create_user_email,
     verify_password,
-    find_or_create_google_user,
 )
 from auth.session import login_user
 
@@ -29,15 +28,6 @@ def render_auth_page():
 
 def _render_login_page():
     st.subheader("Entrar")
-
-    try:
-        if st.button("Entrar com Google", type="primary", use_container_width=True):
-            st.login("google")
-    except Exception:
-        st.caption("Google OAuth não configurado. Use email/senha.")
-
-    st.markdown("---")
-    st.markdown("**Ou entre com email e senha:**")
 
     with st.form("login_form"):
         email = st.text_input("Email")
@@ -98,28 +88,6 @@ def _render_register_form():
         st.session_state.auth_page = "login"
         st.rerun()
 
-
-def handle_google_callback():
-    if not hasattr(st, "user"):
-        return False
-
-    try:
-        if st.user.is_logged_in:
-            if st.session_state.get("authenticated"):
-                return True
-            db = get_database()
-            user = find_or_create_google_user(
-                db,
-                google_sub=st.user.get("sub", st.user.get("email", "")),
-                email=st.user.get("email", ""),
-                nome=st.user.get("name", ""),
-                avatar_url=st.user.get("picture", None),
-            )
-            login_user(user)
-            return True
-    except Exception:
-        pass
-    return False
 
 
 def _validate_registration(nome, email, password, password_confirm):

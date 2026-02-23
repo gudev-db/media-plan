@@ -22,11 +22,6 @@ def render_sidebar():
         st.markdown("---")
         if st.button("Sair", use_container_width=True):
             logout_user()
-            try:
-                if hasattr(st, "user") and st.user.is_logged_in:
-                    st.logout()
-            except Exception:
-                pass
             st.rerun()
 
         return page

@@ -56,7 +56,6 @@ def render_dashboard():
 
             st.markdown("---")
 
-            # Botões de ação
             col_pdf, col_docx, col_del = st.columns([2, 2, 1], gap="small")
 
 

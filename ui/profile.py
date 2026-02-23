@@ -1,6 +1,5 @@
 import streamlit as st
 from bson import ObjectId
-
 from db.connection import get_database
 from db.user_repository import update_profile, get_user_by_id
 
@@ -13,18 +12,7 @@ def render_profile():
     col1, col2 = st.columns([1, 2], gap="small")
 
     with col1:
-        if user_data.get("avatar_url"):
-            st.image(user_data["avatar_url"], width=120)
-        else:
-            st.markdown("### 👤")
-
-        provider = user_data.get("auth_provider", "email")
-        provider_label = {
-            "email": "Email/Senha",
-            "google": "Google",
-            "both": "Email + Google",
-        }.get(provider, provider)
-        st.markdown(f"**Login via:** {provider_label}")
+        st.markdown("### 👤")
 
         criado_em = user_data.get("criado_em")
         if criado_em:

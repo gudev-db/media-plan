@@ -1,7 +1,6 @@
 import io
 import re
 from typing import Dict, Any
-
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -98,7 +97,6 @@ def _add_markdown_content(doc: Document, text: str):
             i += 1
             continue
 
-        # Headers markdown
         if line.startswith("###"):
             heading = doc.add_heading(line.lstrip("#").strip(), level=3)
             for run in heading.runs:
@@ -108,7 +106,6 @@ def _add_markdown_content(doc: Document, text: str):
             for run in heading.runs:
                 run.font.color.rgb = RGBColor(55, 65, 81)
 
-        # Tabelas markdown
         elif line.startswith("|") and line.endswith("|"):
             table_lines = []
             while i < len(lines) and lines[i].strip().startswith("|"):

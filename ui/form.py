@@ -1,6 +1,6 @@
 import streamlit as st
 
-from utils.constants import (
+from utils.constants.constants import (
     TIPOS_CAMPANHA,
     ETAPAS_FUNIL,
     KPIS_POR_ETAPA,
@@ -131,11 +131,9 @@ def render_form(modelos):
                 default=["Estático", "Vídeo"]
             )
 
-        # ── KPIs Hierárquicos ──────────────────────────────────────
         kpis_etapa = KPIS_POR_ETAPA.get(etapa_funil, {})
         metricas = {}
 
-        # Primários 
         primarios = kpis_etapa.get("primarios", [])
         if primarios:
             st.markdown("**KPIs Primários** *(indicadores-chave para esta etapa)*")
@@ -169,7 +167,6 @@ def render_form(modelos):
                     "formula": kpi["formula"],
                 }
 
-        # Secundários 
         secundarios = kpis_etapa.get("secundarios", [])
         if secundarios:
             with st.expander("Indicadores Secundários"):
@@ -203,7 +200,6 @@ def render_form(modelos):
                         "formula": kpi["formula"],
                     }
 
-        # Terciários 
         terciarios = kpis_etapa.get("terciarios", [])
         if terciarios:
             with st.expander("Indicadores Terciários (Avançado)"):
@@ -281,13 +277,9 @@ def render_form(modelos):
             with st.spinner(f'Gerando plano completo para {etapa_funil} do funil...'):
                 pc = st.session_state.plano_completo
 
-                # Etapa 1 - Estrategista (sequencial)
                 pc['recomendacao_estrategica'] = gerar_recomendacao_estrategica(modelos, params)
-
-                # Etapa 2 - Controller Financeiro (depende de 1)
                 pc['distribuicao_budget'] = gerar_distribuicao_budget(modelos, params, pc['recomendacao_estrategica'])
 
-                # Etapas 3, 4, 5 - em paralelo (dependem de 1 e 2, não entre si)
                 from concurrent.futures import ThreadPoolExecutor
                 with ThreadPoolExecutor(max_workers=3) as executor:
                     f_prev = executor.submit(gerar_previsao_resultados, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
@@ -298,19 +290,4 @@ def render_form(modelos):
                     pc['recomendacoes_publico'] = f_pub.result()
                     pc['cronograma'] = f_cron.result()
 
-            from auth.session import is_authenticated, get_current_user_id
-            if is_authenticated():
-                try:
-                    from db.connection import get_database
-                    from db.plan_repository import save_plan
-                    db = get_database()
-                    user_id = get_current_user_id()
-                    save_plan(
-                        db, user_id,
-                        nome_plano=params['objetivo_campanha'],
-                        params=params,
-                        resultado=st.session_state.plano_completo,
-                    )
-                    st.success("✅ Plano gerado e salvo automaticamente!")
-                except Exception as e:
-                    st.warning(f"Não foi possível salvar: {e}")
+            st.success("Plano gerado com sucesso!")
