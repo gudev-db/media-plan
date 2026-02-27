@@ -46,6 +46,10 @@ def render_results():
         st.markdown("## 📅 Cronograma Sugerido")
         st.markdown(st.session_state.plano_completo.get('cronograma', 'Em processamento...'))
 
+        if st.session_state.plano_completo.get('analise_criativos'):
+            st.markdown("## 🎨 Análise de Criativos")
+            st.markdown(st.session_state.plano_completo['analise_criativos'])
+
         if all(key in st.session_state.plano_completo for key in ['recomendacao_estrategica', 'distribuicao_budget', 'previsao_resultados', 'recomendacoes_publico', 'cronograma']):
             plano_completo_md = "\n\n".join([
                 f"# 📊 Plano de Mídia Completo ({etapa_funil} do Funil)\n",
@@ -63,8 +67,12 @@ def render_results():
                 "## 🎯 Recomendações de Público",
                 st.session_state.plano_completo['recomendacoes_publico'],
                 "## 📅 Cronograma Sugerido",
-                st.session_state.plano_completo['cronograma']
+                st.session_state.plano_completo['cronograma'],
             ])
+
+            if st.session_state.plano_completo.get('analise_criativos'):
+                plano_completo_md += "\n\n## 🎨 Análise de Criativos\n\n"
+                plano_completo_md += st.session_state.plano_completo['analise_criativos']
 
             nome_arquivo = f"plano_midia_{etapa_funil}_{st.session_state.params['objetivo_campanha'][:30]}"
 

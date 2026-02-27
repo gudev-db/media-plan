@@ -14,7 +14,11 @@ from utils.generators import (
     gerar_previsao_resultados,
     gerar_recomendacoes_publico,
     gerar_cronograma,
+    gerar_analise_criativo,
 )
+import google.generativeai as genai
+from PIL import Image
+import io
 
 
 def _build_benchmark_context(ferramentas: list) -> str:
@@ -246,6 +250,31 @@ def render_form(modelos):
 
         submitted = st.form_submit_button("Gerar Plano de Mídia")
 
+    st.markdown("---")
+    st.subheader("Análise de Criativos (Opcional)")
+    st.caption(
+        "Envie imagens dos seus criativos (anúncios, banners, posts) para que a IA analise "
+        "o alinhamento com as metas e OKRs da campanha. A análise considera a etapa do funil "
+        "selecionada e verifica se os criativos estão adequados para atingir os KPIs definidos."
+    )
+    uploaded_images = st.file_uploader(
+        "Upload de Criativos",
+        type=["png", "jpg", "jpeg", "webp"],
+        accept_multiple_files=True,
+        help="Envie até 5 imagens de criativos para análise. Formatos: PNG, JPG, JPEG, WEBP.",
+        key="creative_uploader",
+    )
+
+    if uploaded_images and len(uploaded_images) > 5:
+        st.warning("Máximo de 5 imagens. Apenas as 5 primeiras serão analisadas.")
+        uploaded_images = uploaded_images[:5]
+
+    if uploaded_images:
+        cols_preview = st.columns(min(len(uploaded_images), 5))
+        for i, img_file in enumerate(uploaded_images):
+            with cols_preview[i]:
+                st.image(img_file, caption=f"Criativo {i+1}", use_container_width=True)
+
     if submitted:
         if not objetivo_campanha or not tipo_campanha or not budget or not ferramentas or not localizacao_primaria or not detalhes_acao:
             st.error("Por favor, preencha todos os campos (*)")
@@ -281,13 +310,25 @@ def render_form(modelos):
                 pc['distribuicao_budget'] = gerar_distribuicao_budget(modelos, params, pc['recomendacao_estrategica'])
 
                 from concurrent.futures import ThreadPoolExecutor
-                with ThreadPoolExecutor(max_workers=3) as executor:
-                    f_prev = executor.submit(gerar_previsao_resultados, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
-                    f_pub = executor.submit(gerar_recomendacoes_publico, modelos, params, pc['recomendacao_estrategica'])
-                    f_cron = executor.submit(gerar_cronograma, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
+                futures = {}
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    futures['prev'] = executor.submit(gerar_previsao_resultados, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
+                    futures['pub'] = executor.submit(gerar_recomendacoes_publico, modelos, params, pc['recomendacao_estrategica'])
+                    futures['cron'] = executor.submit(gerar_cronograma, modelos, params, pc['recomendacao_estrategica'], pc['distribuicao_budget'])
 
-                    pc['previsao_resultados'] = f_prev.result()
-                    pc['recomendacoes_publico'] = f_pub.result()
-                    pc['cronograma'] = f_cron.result()
+                    if uploaded_images:
+                        gemini_images = []
+                        for img_file in uploaded_images:
+                            img_file.seek(0)
+                            img = Image.open(img_file)
+                            gemini_images.append(img)
+                        futures['criativo'] = executor.submit(gerar_analise_criativo, modelos, params, gemini_images)
+
+                    pc['previsao_resultados'] = futures['prev'].result()
+                    pc['recomendacoes_publico'] = futures['pub'].result()
+                    pc['cronograma'] = futures['cron'].result()
+
+                    if 'criativo' in futures:
+                        pc['analise_criativos'] = futures['criativo'].result()
 
             st.success("Plano gerado com sucesso!")
